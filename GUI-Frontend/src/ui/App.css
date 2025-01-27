@@ -1,0 +1,7 @@
+/* Import Silkscreen font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen&display=swap');
+
+/* Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
