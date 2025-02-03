@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7UL8krGo7nU=",
+  "dgSpecHash": "61KyQEV+/PY=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Azazel\\source\\repos\\Backend\\Backend\\Backend.csproj",
+  "projectFilePath": "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\Backend\\Backend.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Azazel\\.nuget\\packages\\microsoft.aspnetcore.antiforgery\\2.3.0\\microsoft.aspnetcore.antiforgery.2.3.0.nupkg.sha512",
     "C:\\Users\\Azazel\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.3.0\\microsoft.aspnetcore.authentication.abstractions.2.3.0.nupkg.sha512",

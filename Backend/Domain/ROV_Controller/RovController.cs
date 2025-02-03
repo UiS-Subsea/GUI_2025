@@ -1,29 +1,24 @@
 ﻿using SDL2;
-using System.Collections.Concurrent;
 
-namespace Backend
+namespace Backend.Domain.ROV_Controller
 {
     public class RovController
     {
 
-        private IntPtr rovjoystick;
-        private int joystickIndex = 0; // Start with the first joystick
-        private Guid joystickGUID;
-        public bool IsConnected => rovjoystick != IntPtr.Zero && SDL.SDL_JoystickGetAttached(rovjoystick) == SDL.SDL_bool.SDL_TRUE;
+        private IntPtr JoystickPtr; 
+        private int joystickIndex = 0; // The First Joystick Becomes Rov-Controller.
+        private Guid joystickGUID; // Store The Xbox One Controllers GUID, For reconnecting The Same Controller.
+        public bool IsConnected => JoystickPtr != IntPtr.Zero && SDL.SDL_JoystickGetAttached(JoystickPtr) == SDL.SDL_bool.SDL_TRUE;
 
-        private const int joystickDeadzone = 15; // Adjust deadzone as needed
-        private const float MaxValue = 32767.0f; // This is equivalent to `controller_stop_point`
-        private const float MinValue = -32768.0f;
+        private const int joystickDeadzone = 15; // The deadzone Value.
+        private const float MaxValue = 32767.0f; // The Xbox One Controllers Max Joystick Value.
+        private const float MinValue = -32768.0f; // The Xbox One Controllers Min Joystick Value.
 
-        private int[] rov_buttons = new int[15]; // Store button states (0 or 1)
-        private float[] rov_axis = new float[8]; // Store joystick axis states in [x, y, z, rotation, 0, 0, 0, 0]
+        private int[] rov_buttons = new int[15]; // Store button states (0 or 1).
+        private float[] rov_axis = new float[8]; // Store joystick axis states in [x, y, z, rotation, 0, 0, 0, 0].
         private (int x, int y) rov_dpad = (0, 0);
-        private BlockingCollection<SDL.SDL_Event> _rovQueue; // Shared event queue for background processing
 
-        public RovController(BlockingCollection<SDL.SDL_Event> queue)
-        {
-            _rovQueue = queue;
-        }
+        public RovController() {}
 
         public void InitializeJoystick()
         {
@@ -32,8 +27,8 @@ namespace Backend
                 Console.WriteLine($"There are no Joystick available/connected.");
                 return;
             }
-            rovjoystick = SDL.SDL_JoystickOpen(joystickIndex);
-            if (rovjoystick == IntPtr.Zero)
+            JoystickPtr = SDL.SDL_JoystickOpen(joystickIndex);
+            if (JoystickPtr == IntPtr.Zero)
             {
                 Console.WriteLine("Joystick not found!");
             }
@@ -45,7 +40,8 @@ namespace Backend
             }
             Console.WriteLine("There are: " + SDL.SDL_NumJoysticks() + "  Controllers");
         }
-        public void CheckJoystickConnection()
+
+        public bool CheckJoystickConnection()
         {
             // Check if joystick is still attached and matches the expected instance ID
             if (!IsConnected)
@@ -59,76 +55,36 @@ namespace Backend
                         joystickIndex = i;
                         InitializeJoystick();
                         Console.WriteLine($"Reconnected joystick with matching GUID at index {i}");
-                        return;
+                        return true;
                     }
                 }
                 Console.WriteLine("No matching joystick found. Waiting for reconnection...");
+                return false;
             }
-            //Console.WriteLine($"Joystick {joystickIndex} still connected. (GUID: {joystickGUID})");
+            return true;
         }
-        public void ProcessEvents(CancellationToken cancellationToken)
+
+        public Dictionary<string, object> ProcessEvents(SDL.SDL_Event e, CancellationToken cancellationToken)
         {
-            SDL.SDL_Event e;
-            while (_rovQueue.Count > 0)
+            if (e.type == SDL.SDL_EventType.SDL_JOYBUTTONDOWN || e.type == SDL.SDL_EventType.SDL_JOYBUTTONUP)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    return;  // Exit early if cancellation is requested
-
-                e = _rovQueue.Take();  // Take event from queue for processing
-
-                if (e.type == SDL.SDL_EventType.SDL_JOYBUTTONDOWN || e.type == SDL.SDL_EventType.SDL_JOYBUTTONUP)
-                {
-                    HandleButtonPress(e);
-                    /*if (e.type == SDL.SDL_EventType.SDL_JOYBUTTONDOWN)
-                    {
-                        Console.WriteLine($"Button {e.jbutton.button} Pressed");
-                    }
-                    else if (e.type == SDL.SDL_EventType.SDL_JOYBUTTONUP)
-                    {
-                        Console.WriteLine($"Button {e.jbutton.button} Released");
-                    }
-                    */
-                }
-
-                if (e.type == SDL.SDL_EventType.SDL_JOYAXISMOTION)
-                {
-                    HandleJoystickMotion(e);
-                    //int axis = e.jaxis.axis;
-                    //int value = e.jaxis.axisValue;
-
-                    //Console.WriteLine($"Joystick Axis {axis}: {value}");
-                }
-                if (e.type == SDL.SDL_EventType.SDL_JOYHATMOTION)
-                {
-                    HandleJoyHatMotion(e);
-                    /*Console.WriteLine($"D-pad moved: {e.jhat.hat} State: {e.jhat.hatValue}");
-
-                    switch (e.jhat.hatValue)
-                    {
-                        case SDL.SDL_HAT_UP:
-                            Console.WriteLine("D-pad UP pressed");
-                            break;
-                        case SDL.SDL_HAT_DOWN:
-                            Console.WriteLine("D-pad DOWN pressed");
-                            break;
-                        case SDL.SDL_HAT_LEFT:
-                            Console.WriteLine("D-pad LEFT pressed");
-                            break;
-                        case SDL.SDL_HAT_RIGHT:
-                            Console.WriteLine("D-pad RIGHT pressed");
-                            break;
-                        case SDL.SDL_HAT_CENTERED:
-                            Console.WriteLine("D-pad released");
-                            break;
-                        default:
-                            Console.WriteLine($"D-pad state: {e.jhat.hatValue}");
-                            break;
-                    }*/
-                }
+                HandleButtonPress(e);
             }
+
+            if (e.type == SDL.SDL_EventType.SDL_JOYAXISMOTION)
+            {
+                HandleJoystickMotion(e);
+            }
+            if (e.type == SDL.SDL_EventType.SDL_JOYHATMOTION)
+            {
+                HandleJoyHatMotion(e);
+            }
+            return new Dictionary<string, object>
+            {
+                { "rov_axis", rov_axis },
+                { "rov_buttons", rov_buttons }
+            };
         }
-
-
         // Handle button press events (A, B, X, Y, etc.)
         private void HandleButtonPress(SDL.SDL_Event e)
         {
@@ -212,34 +168,16 @@ namespace Backend
 
             switch (e.jhat.hatValue)
             {
-                case SDL.SDL_HAT_UP:
-                    y = 1;
-                    break;
-                case SDL.SDL_HAT_DOWN:
-                    y = -1;
-                    break;
-                case SDL.SDL_HAT_LEFT:
-                    x = -1;
-                    break;
-                case SDL.SDL_HAT_RIGHT:
-                    x = 1;
-                    break;
-                case SDL.SDL_HAT_RIGHTUP:
-                    x = 1; y = 1;
-                    break;
-                case SDL.SDL_HAT_RIGHTDOWN:
-                    x = 1; y = -1;
-                    break;
-                case SDL.SDL_HAT_LEFTUP:
-                    x = -1; y = 1;
-                    break;
-                case SDL.SDL_HAT_LEFTDOWN:
-                    x = -1; y = -1;
-                    break;
+                case SDL.SDL_HAT_UP: y = 1; break;
+                case SDL.SDL_HAT_DOWN: y = -1; break;
+                case SDL.SDL_HAT_LEFT: x = -1; break;
+                case SDL.SDL_HAT_RIGHT: x = 1; break;
+                case SDL.SDL_HAT_RIGHTUP: x = 1; y = 1; break;
+                case SDL.SDL_HAT_RIGHTDOWN: x = 1; y = -1; break;
+                case SDL.SDL_HAT_LEFTUP: x = -1; y = 1; break;
+                case SDL.SDL_HAT_LEFTDOWN: x = -1; y = -1; break;
                 case SDL.SDL_HAT_CENTERED:
-                default:
-                    x = 0; y = 0;
-                    break;
+                default: x = 0; y = 0; break;
             }
 
             // Update the stored D-pad state
@@ -252,28 +190,32 @@ namespace Backend
         // Handle joystick motion events (Axis motion)
         private void HandleJoystickMotion(SDL.SDL_Event e)
         {
-            // Assuming you have already initialized joysticks (rovJoystick and maniJoystick)
+            // Assuming you have already initialized joysticks (JoystickPtr and maniJoystick)
             // Assuming you're working with joystick axes [x, y, z, rotation, 0, 0, 0, 0]
-            if (rovjoystick != IntPtr.Zero)
+            if (JoystickPtr != IntPtr.Zero)
             {
-                for (int i = 0; i < SDL.SDL_JoystickNumAxes(rovjoystick); i++)
+                for (int i = 0; i < SDL.SDL_JoystickNumAxes(JoystickPtr); i++)
                 {
-                    int normalizedValue = NormalizeJoystick(rovjoystick, i);
+                    int normalizedValue = NormalizeJoystick(JoystickPtr, i);
                     UpdateAxis(i, normalizedValue);
-                    Console.WriteLine($"ROV Axis {i}: {normalizedValue}");
                 }
+
+                Console.WriteLine("ROV Axis: " + string.Join(", ", rov_axis));
+
             }
         }
         // Update the rov_axis array based on axis index
-        private void UpdateAxis(int axisIndex, int value)
+          private void UpdateAxis(int axisIndex, int value)
         {
             switch (axisIndex)
             {
                 case 0: rov_axis[0] = value; break; // X axis
                 case 1: rov_axis[1] = value; break; // Y axis
-                case 2: rov_axis[2] = value; break; // Z axis (could be mapped to another axis)
-                case 3: rov_axis[3] = value; break; // Rotation (could be mapped to another axis)
-                // Keep other indices for other axes as needed (fill with zeros or other values if unused)
+                case 2: rov_axis[2] = value; break; // Z axis
+                case 3: rov_axis[3] = value; break; // Rotation
+                case 4: rov_axis[4] = value; break; // 
+                case 5: rov_axis[5] = value; break; // 
+
                 default: break;
             }
         }
@@ -281,30 +223,29 @@ namespace Backend
         // Normalize joystick axis values to the range [-100, 100]
         private int NormalizeJoystick(IntPtr joystick, int axis)
         {
-            // Normalize the axis value to the range -100 to 100
-            // Get the axis value from SDL2
-            short axisValue = SDL.SDL_JoystickGetAxis(joystick, axis);
-            Console.WriteLine($"Raw axis value: {axisValue}");
+            // Normalize the axis value.
+            
+            short axisValue = SDL.SDL_JoystickGetAxis(joystick, axis); // Get the axis value from SDL2.
 
             int normalizedValue;
 
             switch (axis)
             {
-                // For axis 1 and 3 (Reversed axes) [-100, 100]
+                // For axis 1 and 3 (Reversed axes) [-100, 100].
                 case 1:
                 case 3:
-                    normalizedValue = DeadzoneAdjustment((int)((((axisValue - MinValue) / (MaxValue - MinValue) * 2 )-1)*-100));
+                    normalizedValue = DeadzoneAdjustment((int)(Math.Round((((axisValue - MinValue) / (MaxValue - MinValue) * 2 )-1)*-100)));
                     break;
 
-                // For axis 2 and 5 (Scaling axes to a range of 0 to 100)
+                // For axis 2 and 5 (Scaling axes to a range of 0 to 100).
                 case 2:
                 case 5:
-                    normalizedValue = DeadzoneAdjustment((int)(((axisValue - MinValue) / (MaxValue - MinValue)) * 100));
+                    normalizedValue = DeadzoneAdjustment((int)(Math.Round(((axisValue - MinValue) / (MaxValue - MinValue)) * 100)));
                     break;
 
-                // Default axis normalization (Handle other axes) [-100, 100]
+                // Default axis normalization (Handle other axes) [-100, 100].
                 default:
-                    normalizedValue = DeadzoneAdjustment((int)(((axisValue - MinValue) / (MaxValue - MinValue) *2) -1) * 100);
+                    normalizedValue = DeadzoneAdjustment((int)(Math.Round(((axisValue - MinValue) / (MaxValue - MinValue) *2) -1) * 100));
                     break;
             }
 
@@ -313,13 +254,30 @@ namespace Backend
         // Function for deadzone adjustment
         private int DeadzoneAdjustment(int value)
         {
-            // Apply the deadzone adjustment
-            Console.WriteLine("Before deadzoneadjustmeant:  " + value);
-            if (Math.Abs(value) < joystickDeadzone)
+            if (Math.Abs(value) < joystickDeadzone+1)
             {
                 return 0;
             }
             return value;
+        }
+        public void CloseJoystick()
+        {
+            if (JoystickPtr != IntPtr.Zero && SDL.SDL_JoystickGetAttached(JoystickPtr) == SDL.SDL_bool.SDL_TRUE)
+            {
+                SDL.SDL_JoystickClose(JoystickPtr);
+                JoystickPtr = IntPtr.Zero; // Reset pointer to avoid invalid access
+            }
+        }
+        public bool IsRelevantEvent(SDL.SDL_Event e)
+        {
+            if (e.type == SDL.SDL_EventType.SDL_JOYAXISMOTION ||
+                e.type == SDL.SDL_EventType.SDL_JOYBUTTONDOWN ||
+                e.type == SDL.SDL_EventType.SDL_JOYBUTTONUP)
+            {
+                int eventJoystickId = SDL.SDL_JoystickInstanceID(JoystickPtr);  // Your joystick instance ID
+                return eventJoystickId == e.jaxis.which || eventJoystickId == e.jbutton.which;
+            }
+            return false;
         }
     }
 }
