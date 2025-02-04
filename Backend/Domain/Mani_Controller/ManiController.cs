@@ -14,7 +14,7 @@ namespace Backend.Domain.Mani_Controller
         private const float MaxValue = 32767.0f; // The Xbox One Controllers Max Joystick Value.
         private const float MinValue = -32768.0f; // The Xbox One Controllers Min Joystick Value.
 
-        private int[] mani_buttons = new int[15]; // Store button states (0 or 1).
+        private int[] mani_buttons = new int[16]; // Store button states (0 or 1).
         private float[] mani_axis = new float[8]; // Store joystick axis states in [x, y, z, rotation, 0, 0, 0, 0].
         private (int x, int y) mani_dpad = (0, 0);
 
@@ -160,6 +160,7 @@ namespace Backend.Domain.Mani_Controller
                     Console.WriteLine($"Unknown button {e.jbutton.button} {(buttonState == 1 ? "pressed" : "released")}");
                     break;
             }
+            mani_buttons[15] = mani_buttons[11] - mani_buttons[12];
         }
 
         private void HandleJoyHatMotion(SDL.SDL_Event e)
@@ -199,6 +200,7 @@ namespace Backend.Domain.Mani_Controller
                     int normalizedValue = NormalizeJoystick(JoystickPtr, i);
                     UpdateAxis(i, normalizedValue);
                 }
+                mani_axis[6] = mani_axis[5] - mani_axis[2];
 
                 Console.WriteLine("Mani Axis: " + string.Join(", ", mani_axis));
 

@@ -20,8 +20,8 @@ namespace Backend
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // Set Hint for Joystick to disable RawInput, or else it can't read the Xbox One controller input.
             SDL.SDL_SetHint(SDL.SDL_HINT_JOYSTICK_RAWINPUT, "0");
-
             SDL.SDL_Log("SDL Log system initialized.");
 
             // Initialize SDL for joystick and event handling
@@ -34,39 +34,52 @@ namespace Backend
             // Main loop to poll events and add them to the queue
             return Task.Run(async () =>
             {
+                Stopwatch stopwatch = new Stopwatch();
+
                 while (!stoppingToken.IsCancellationRequested)
                 {
+
+                    stopwatch.Restart(); // Start measuring the loop time
+
                     try
                     {
                         SDL.SDL_Event e;
+
+                        // Process all events and update state
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
-                            Dictionary<string, object> commandData = new Dictionary<string, object>();
-
                             if (_rovController.IsRelevantEvent(e))
                             {
                                 _rovController.CheckJoystickConnection();
 
-                                Dictionary<string, object> rovData = _rovController.ProcessEvents(e, stoppingToken);
-                                rovData["timestamp"] = DateTime.UtcNow;  // Add timestamp
-                                commandData = commandData.Concat(rovData).ToDictionary(pair => pair.Key, pair => pair.Value);
+                                _rovController.ProcessEvents(e, stoppingToken);
                             }
 
                             if (_maniController.IsRelevantEvent(e))
                             {
                                 _maniController.CheckJoystickConnection();
 
-                                Dictionary<string, object> maniData = _maniController.ProcessEvents(e, stoppingToken);
-                                maniData["timestamp"] = DateTime.UtcNow;  // Add timestamp
-                                commandData = commandData.Concat(maniData).ToDictionary(pair => pair.Key, pair => pair.Value);
+                                _maniController.ProcessEvents(e, stoppingToken);
                             }
-                            if (commandData.Count > 0)  // Only enqueue if there's new data
+
+                                // Get final data at the end of the tick
+                                Dictionary<string, object> rovData = _rovController.GetState();
+                                Dictionary<string, object> maniData = _maniController.GetState();
+
+                                // Merge both datasets
+                                Dictionary<string, object> commandData = rovData.Concat(maniData)
+                                    .ToDictionary(pair => pair.Key, pair => pair.Value);
+
+                                commandData["timestamp"] = DateTime.UtcNow;  // Add timestamp
+
+                            // Send the final merged data only if there's something to send
+                            if (commandData.Count > 1) // More than just timestamp
                             {
                                 Stopwatch sw = Stopwatch.StartNew();
                                 await _commandQueue.EnqueueAsync(commandData);
                                 sw.Stop();
 
-                                if (sw.ElapsedMilliseconds > 1)  // Set a threshold, e.g., 10ms
+                                if (sw.ElapsedMilliseconds > 1)  // Set a threshold, e.g., 10ms 
                                 {
                                     Console.WriteLine($"[WARNING] EnqueueAsync took too long: {sw.ElapsedMilliseconds} ms");
                                 }
@@ -78,8 +91,11 @@ namespace Backend
                         Console.WriteLine($"Error in event loop: {ex.Message}");
                     }
 
-                    // You can put a small delay here if necessary (e.g., Thread.Sleep(10))
-                    //Thread.Sleep(10);
+                    // Ensure the loop runs exactly 20 times per second
+                    int elapsedMs = (int)stopwatch.ElapsedMilliseconds;
+                    int delay = Math.Max(50 - elapsedMs, 0); // Adjust delay to maintain 20 Hz
+
+                    await Task.Delay(delay, stoppingToken);
                 }
             }, stoppingToken);
         }
