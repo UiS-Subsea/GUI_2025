@@ -11,6 +11,7 @@ import { Battery } from './grid-items/Battery';
 import { DriveMode } from './grid-items/DriveMode';
 import { LightSettings } from './grid-items/LightSettings';
 import { Angles } from './grid-items/Angles';
+import { Manipulator } from './grid-items/Manipulator';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 export const DashboardGrid = () => {
@@ -118,7 +119,7 @@ export const DashboardGrid = () => {
           key='manipulatorConnection'
           className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
         >
-          <h3>Manipulator Connection</h3>
+          <Manipulator />
         </div>
       </ResponsiveGridLayout>
     </div>
