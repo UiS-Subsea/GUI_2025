@@ -11,6 +11,8 @@ import Home from 'ui/screens/Home';
 import '../ui/App.css';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+import Settings from './screens/Settings';
+import Data from './screens/Data';
 
 const onMenuEvent = (_: Electron.IpcRendererEvent, channel: string, ...args: any[]) => {
   electron.ipcRenderer.invoke(channel, args);
@@ -60,6 +62,8 @@ export default function App() {
         </Titlebar>
         <Routes>
           <Route path='/' element={<Home isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+          <Route path='/settings' element={<Settings isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+          <Route path='/data' element={<Data isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
         </Routes>
       </Router>
     </div>
