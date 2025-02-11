@@ -20,7 +20,7 @@ const config: ForgeConfig = {
     // Set executable name
     executableName: productName,
     // Set application copyright
-    appCopyright: 'Copyright (C) 2024 Flavio Del Grosso',
+    appCopyright: 'Copyright (C) 2025: UiS Subsea',
     // Set application icon
     icon: path.resolve(rootDir, 'assets/icons/icon'),
   },
