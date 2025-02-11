@@ -48,41 +48,44 @@ namespace Backend
                         // Process all events and update state
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
+                            // Checks if Event belongs to the ROV, if dose then process it.
                             if (_rovController.IsRelevantEvent(e))
                             {
                                 _rovController.CheckJoystickConnection();
-
+                                // Process the Event and stores data internally in the ROVController.
                                 _rovController.ProcessEvents(e, stoppingToken);
                             }
 
+                            // Checks if Event belongs to the Manipulator, if dose then process it.
                             if (_maniController.IsRelevantEvent(e))
                             {
                                 _maniController.CheckJoystickConnection();
-
+                                // Process the Event and stores data internally in the ManiController.
                                 _maniController.ProcessEvents(e, stoppingToken);
                             }
+                        }
 
-                                // Get final data at the end of the tick
-                                Dictionary<string, object> rovData = _rovController.GetState();
-                                Dictionary<string, object> maniData = _maniController.GetState();
+                        // Get final data at the end of the tick
+                        Dictionary<string, object> rovData = _rovController.GetState();
+                        Dictionary<string, object> maniData = _maniController.GetState();
 
-                                // Merge both datasets
-                                Dictionary<string, object> commandData = rovData.Concat(maniData)
-                                    .ToDictionary(pair => pair.Key, pair => pair.Value);
+                        // Merge both datasets
+                        Dictionary<string, object> commandData = rovData.Concat(maniData)
+                            .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-                                commandData["timestamp"] = DateTime.UtcNow;  // Add timestamp
+                        // Used to check for Queue Delay.
+                        commandData["timestamp"] = DateTime.UtcNow;  // Add timestamp
 
-                            // Send the final merged data only if there's something to send
-                            if (commandData.Count > 1) // More than just timestamp
+                        // Send the final merged data only if there's something to send
+                        if (commandData.Count > 1) // More than just timestamp
+                        {
+                            Stopwatch sw = Stopwatch.StartNew();
+                            await _commandQueue.EnqueueAsync(commandData);
+                            sw.Stop();
+
+                            if (sw.ElapsedMilliseconds > 1)  // Set a threshold, e.g., 10ms 
                             {
-                                Stopwatch sw = Stopwatch.StartNew();
-                                await _commandQueue.EnqueueAsync(commandData);
-                                sw.Stop();
-
-                                if (sw.ElapsedMilliseconds > 1)  // Set a threshold, e.g., 10ms 
-                                {
-                                    Console.WriteLine($"[WARNING] EnqueueAsync took too long: {sw.ElapsedMilliseconds} ms");
-                                }
+                                Console.WriteLine($"[WARNING] EnqueueAsync took too long: {sw.ElapsedMilliseconds} ms");
                             }
                         }
                     }
@@ -107,6 +110,7 @@ namespace Backend
             if (SDL.SDL_WasInit(SDL.SDL_INIT_JOYSTICK) != 0)
             {
                 _rovController.CloseJoystick();
+                _maniController.CloseJoystick();
                 Console.WriteLine("Joystick closed.");
             }
 

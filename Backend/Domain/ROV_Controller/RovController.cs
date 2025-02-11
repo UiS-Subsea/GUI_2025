@@ -15,7 +15,7 @@ namespace Backend.Domain.ROV_Controller
         private const float MinValue = -32768.0f; // The Xbox One Controllers Min Joystick Value.
 
         private int[] rov_buttons = new int[15]; // Store button states (0 or 1).
-        private float[] rov_axis = new float[8]; // Store joystick axis states in [x, y, z, rotation, 0, 0, 0, 0].
+        private int[] rov_axis = new int[7]; // Store joystick axis states in [x, y, z, rotation, 0, 0, 0, 0].
         private (int x, int y) rov_dpad = (0, 0);
 
         public RovController() {}
@@ -64,26 +64,36 @@ namespace Backend.Domain.ROV_Controller
             return true;
         }
 
-        public Dictionary<string, object> ProcessEvents(SDL.SDL_Event e, CancellationToken cancellationToken)
+        public bool ProcessEvents(SDL.SDL_Event e, CancellationToken cancellationToken)
         {
-            if (e.type == SDL.SDL_EventType.SDL_JOYBUTTONDOWN || e.type == SDL.SDL_EventType.SDL_JOYBUTTONUP)
+            // Early exit if cancellation is requested
+            if (cancellationToken.IsCancellationRequested)
             {
-                HandleButtonPress(e);
+                Console.WriteLine("Event processing canceled.");
+                return false;  // Indicate that event processing was canceled
             }
 
-            if (e.type == SDL.SDL_EventType.SDL_JOYAXISMOTION)
+            // Handle events based on type
+            switch (e.type)
             {
-                HandleJoystickMotion(e);
+                case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
+                case SDL.SDL_EventType.SDL_JOYBUTTONUP:
+                    HandleButtonPress(e);
+                    break;
+
+                case SDL.SDL_EventType.SDL_JOYAXISMOTION:
+                    HandleJoystickMotion(e);
+                    break;
+
+                case SDL.SDL_EventType.SDL_JOYHATMOTION:
+                    HandleJoyHatMotion(e);
+                    break;
+
+                default:
+                    return false;  // Event type not handled, return false
             }
-            if (e.type == SDL.SDL_EventType.SDL_JOYHATMOTION)
-            {
-                HandleJoyHatMotion(e);
-            }
-            return new Dictionary<string, object>
-            {
-                { "rov_axis", rov_axis },
-                { "rov_buttons", rov_buttons }
-            };
+
+            return true;  // Event processed successfully
         }
         // Handle button press events (A, B, X, Y, etc.)
         private void HandleButtonPress(SDL.SDL_Event e)
@@ -124,39 +134,24 @@ namespace Backend.Domain.ROV_Controller
                     rov_buttons[3] = buttonState;
                     Console.WriteLine($"Button Y {(buttonState == 1 ? "pressed" : "released")}");
                     break;
-                case 7: // "Left Joystick Press"
-                    rov_buttons[7] = buttonState;
-                    Console.WriteLine($"Left Joystick Press {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 8: // "Right Joystick Press"
-                    rov_buttons[8] = buttonState;
-                    Console.WriteLine($"Right Joystick Press {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 9: // "LB" (Left Bumper)
-                    rov_buttons[9] = buttonState;
+                case 4: // "LB" (Left Bumper)
+                    rov_buttons[4] = buttonState;
                     Console.WriteLine($"LB {(buttonState == 1 ? "pressed" : "released")}");
                     break;
-                case 10: // "RB" (Right Bumper)
-                    rov_buttons[10] = buttonState;
+                case 5: // "RB" (Right Bumper)
+                    rov_buttons[5] = buttonState;
                     Console.WriteLine($"RB {(buttonState == 1 ? "pressed" : "released")}");
                     break;
-                case 11: // "DPAD UP"
-                    rov_buttons[11] = buttonState;
-                    Console.WriteLine($"DPAD UP {(buttonState == 1 ? "pressed" : "released")}");
+                case 8: // "Left Joystick Press"
+                    rov_buttons[8] = buttonState;
+                    Console.WriteLine($"Left Joystick Press {(buttonState == 1 ? "pressed" : "released")}");
                     break;
-                case 12: // "DPAD DOWN"
-                    rov_buttons[12] = buttonState;
-                    Console.WriteLine($"DPAD DOWN {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 13: // "DPAD LEFT"
-                    rov_buttons[13] = buttonState;
-                    Console.WriteLine($"DPAD LEFT {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 14: // "DPAD RIGHT"
-                    rov_buttons[14] = buttonState;
-                    Console.WriteLine($"DPAD RIGHT {(buttonState == 1 ? "pressed" : "released")}");
+                case 9: // "Right Joystick Press"
+                    rov_buttons[9] = buttonState;
+                    Console.WriteLine($"Right Joystick Press {(buttonState == 1 ? "pressed" : "released")}");
                     break;
                 default:
+                    rov_buttons[e.jbutton.button] = buttonState;
                     Console.WriteLine($"Unknown button {e.jbutton.button} {(buttonState == 1 ? "pressed" : "released")}");
                     break;
             }
@@ -186,23 +181,23 @@ namespace Backend.Domain.ROV_Controller
             Console.WriteLine($"D-pad Position: {rov_dpad}");
         }
 
-
-        // Handle joystick motion events (Axis motion)
         private void HandleJoystickMotion(SDL.SDL_Event e)
         {
-            // Assuming you have already initialized joysticks (JoystickPtr and maniJoystick)
+            // Assuming you have already initialized joysticks (JoystickPtr)
             // Assuming you're working with joystick axes [x, y, z, rotation, 0, 0, 0, 0]
             if (JoystickPtr != IntPtr.Zero)
             {
-                for (int i = 0; i < SDL.SDL_JoystickNumAxes(JoystickPtr); i++)
-                {
-                    int normalizedValue = NormalizeJoystick(JoystickPtr, i);
-                    UpdateAxis(i, normalizedValue);
-                }
+
+                int axisIndex = e.jaxis.axis;         // contains the axis index
+                short axisValue = e.jaxis.axisValue;  // Get the axis value from the event
+
+                // Normalize and update axis value
+                int normalizedValue = NormalizeJoystick(axisIndex, axisValue);
+                UpdateAxis(axisIndex, normalizedValue);
+
                 rov_axis[6] = rov_axis[5] - rov_axis[2];
 
-                Console.WriteLine("ROV Axis: " + string.Join(", ", rov_axis));
-
+                //Console.WriteLine("ROV Axis: " + string.Join(", ", rov_axis));
             }
         }
         // Update the rov_axis array based on axis index
@@ -222,31 +217,29 @@ namespace Backend.Domain.ROV_Controller
         }
 
         // Normalize joystick axis values to the range [-100, 100]
-        private int NormalizeJoystick(IntPtr joystick, int axis)
+        private int NormalizeJoystick(int axisIndex, int value)
         {
             // Normalize the axis value.
-            
-            short axisValue = SDL.SDL_JoystickGetAxis(joystick, axis); // Get the axis value from SDL2.
 
             int normalizedValue;
 
-            switch (axis)
+            switch (axisIndex)
             {
                 // For axis 1 and 3 (Reversed axes) [-100, 100].
                 case 1:
                 case 3:
-                    normalizedValue = DeadzoneAdjustment((int)(Math.Round((((axisValue - MinValue) / (MaxValue - MinValue) * 2 )-1)*-100)));
+                    normalizedValue = DeadzoneAdjustment((int)(Math.Round((((value - MinValue) / (MaxValue - MinValue) * 2 ) -1) * -100)));
                     break;
 
                 // For axis 2 and 5 (Scaling axes to a range of 0 to 100).
                 case 2:
                 case 5:
-                    normalizedValue = DeadzoneAdjustment((int)(Math.Round(((axisValue - MinValue) / (MaxValue - MinValue)) * 100)));
+                    normalizedValue = DeadzoneAdjustment((int)(Math.Round(((value - MinValue) / (MaxValue - MinValue)) * 100)));
                     break;
 
                 // Default axis normalization (Handle other axes) [-100, 100].
                 default:
-                    normalizedValue = DeadzoneAdjustment((int)(Math.Round(((axisValue - MinValue) / (MaxValue - MinValue) *2) -1) * 100));
+                    normalizedValue = DeadzoneAdjustment((int)(Math.Round((((value - MinValue) / (MaxValue - MinValue) * 2 ) -1) * 100)));
                     break;
             }
 
@@ -273,12 +266,24 @@ namespace Backend.Domain.ROV_Controller
         {
             if (e.type == SDL.SDL_EventType.SDL_JOYAXISMOTION ||
                 e.type == SDL.SDL_EventType.SDL_JOYBUTTONDOWN ||
-                e.type == SDL.SDL_EventType.SDL_JOYBUTTONUP)
+                e.type == SDL.SDL_EventType.SDL_JOYBUTTONUP   ||
+                e.type == SDL.SDL_EventType.SDL_JOYHATMOTION)
             {
                 int eventJoystickId = SDL.SDL_JoystickInstanceID(JoystickPtr);  // Your joystick instance ID
-                return eventJoystickId == e.jaxis.which || eventJoystickId == e.jbutton.which;
+                return eventJoystickId == e.jaxis.which || eventJoystickId == e.jbutton.which || eventJoystickId == e.jhat.which;
+
             }
             return false;
+        }
+        public Dictionary<string, object> GetState()
+        {
+            return new Dictionary<string, object>
+            {
+                { "rov_axis", (int[])rov_axis.Clone() }, // Prevent accidental modification
+                { "rov_buttons", (int[])rov_buttons.Clone() },
+                {"camera_movement", rov_axis[3]},
+                { "rov_dpad", rov_dpad }
+            };
         }
     }
 }

@@ -4,6 +4,11 @@ using Backend.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Ensure logging is added
+builder.Logging.ClearProviders(); // Clear default providers
+builder.Logging.AddConsole();     // Add console logging
+builder.Logging.AddDebug();       // (Optional) Add debug logging
+
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -21,8 +26,11 @@ builder.Services.AddCors(options =>
 
 // Add services to the container
 builder.Services.AddSingleton<CommandQueueService<Dictionary<string, object>>>();
-builder.Services.AddHostedService<SDL2PoolService>(); // Background Service that Collects Controller Input and Enqueue it.
-builder.Services.AddHostedService<RovCommandProcessor>(); // Background Service that Dequeue Commands, Translate it, And Send it to ROV.
+
+// Background Service that Dequeue Commands, Translate it, And Send it to ROV.
+builder.Services.AddHostedService<RovCommandProcessor>();
+builder.Services.AddHostedService<SDL2PoolService>(); // Background Service that Collects Controller Input and Enqueue it
+
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
