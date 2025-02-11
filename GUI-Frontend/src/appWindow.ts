@@ -20,7 +20,7 @@ export function createAppWindow(): BrowserWindow {
   const savedWindowState = windowStateKeeper({
     defaultWidth: minWidth,
     defaultHeight: minHeight,
-    maximize: false,
+    maximize: true,
   });
 
   const windowOptions: Electron.BrowserWindowConstructorOptions = {

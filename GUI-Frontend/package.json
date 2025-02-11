@@ -1,9 +1,12 @@
 {
   "name": "electron-forge-react-typescript-boilerplate",
-  "productName": "EFRV Boilerplate",
+  "productName": "UiS Subsea GUI",
   "version": "1.1.0",
-  "description": "Electron-Forge React Vite Boilerplate.",
+  "description": "GUI for all ROV produced by UiS Subsea",
   "main": ".vite/build/main.js",
+  "author": {
+    "name": "Lan Anh Tran, Ørjan Østlyngen, Maliwan Misjoen"
+    },
   "license": "MIT",
   "packageManager": "yarn@1.22.21",
   "scripts": {
@@ -31,14 +34,6 @@
     "electron-forge",
     "vite"
   ],
-  "author": {
-    "name": "Flavio Del Grosso",
-    "email": "flaviodelgrosso@live.it"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/flaviodelgrosso/electron-forge-react-typescript-boilerplate.git"
-  },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
     "electron-window-state": "^5.0.3",
