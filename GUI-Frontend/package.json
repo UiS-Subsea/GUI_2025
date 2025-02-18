@@ -35,6 +35,8 @@
     "vite"
   ],
   "dependencies": {
+    "@microsoft/signalr": "^8.0.7",
+    "axios": "^1.7.9",
     "electron-squirrel-startup": "^1.0.1",
     "electron-window-state": "^5.0.3",
     "motion": "^11.18.1",

@@ -27,7 +27,8 @@ export default defineConfig((env) => {
       pluginExposeRenderer(name),
       svgrPlugin(), // Handles SVGs as React components
       viteTsconfigPaths(), // Resolves paths from tsconfig
-      checker({ // Adds type and lint checks
+      checker({
+        // Adds type and lint checks
         typescript: true,
         eslint: {
           lintCommand: 'eslint "./**/*.{ts,tsx}"',
