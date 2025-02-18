@@ -14,6 +14,7 @@ import 'react-resizable/css/styles.css';
 import Settings from './screens/Settings';
 import Data from './screens/Data';
 import { WebSocketProvider } from '../../WebSocketProvider'; // Import the WebSocketProvider
+
 const onMenuEvent = (_: Electron.IpcRendererEvent, channel: string, ...args: any[]) => {
   electron.ipcRenderer.invoke(channel, args);
 };
