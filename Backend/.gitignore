@@ -1,0 +1,100 @@
+# Visual Studio and VS Code settings
+.vscode/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build output
+bin/
+obj/
+out/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.ilk
+*.ilk
+*.pdb
+*.rsp
+*.sbr
+*.tlog
+*.csproj.user
+*.csproj.DotSettings.user
+
+# NuGet packages
+*.nupkg
+packages/
+project.lock.json
+project.assets.json
+nuget.config
+NuGet.Config
+global.json
+
+# ASP.NET Core secrets
+secrets.json
+.env
+
+# Entity Framework migrations
+Migrations/
+
+# Logs and debug
+*.log
+*.tlog
+*.cache
+debug/
+debug.log
+error.log
+
+# Resharper
+_ReSharper.Caches/
+*.DotSettings.user
+
+# Rider
+.idea/
+*.iml
+
+# User-specific files
+*.suo
+*.ntvs*
+*.njsproj
+*.sln.ide
+*.user
+
+# Coverage and test output
+coverage/
+coverage.json
+coverage.lcov
+testresults/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+*.testlog
+
+# Node.js (for frontend integration)
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+
+# Docker
+docker-compose.override.yml
+**/docker-compose.*.yml
+.dockerignore
+
+# JetBrains Rider
+.idea/
+
+# MacOS files
+.DS_Store
+
+# Windows files
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Linux files
+*.swp
+*.swo
