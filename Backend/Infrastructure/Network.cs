@@ -2,11 +2,14 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
+using Backend.Infrastructure.Interface;
 
 namespace Backend.Infrastructure
 {
-    public class Network
+    public class Network : INetworkServer, INetworkClient
     {
+         private readonly Channel<byte[]> _sensorDataChannel = Channel.CreateUnbounded<byte[]>(); // Message queue
         private readonly bool _isServer;
         private readonly string _bindIP;
         private readonly string _connectIP;
@@ -16,13 +19,17 @@ namespace Backend.Infrastructure
         private NetworkStream? _stream;
         private readonly TimeSpan _heartbeatInterval = TimeSpan.FromMilliseconds(300);
         private bool _running = true;
+        public bool IsConnected => _running && _client?.Connected == true; // Checks both running status and TCP connection
+        private readonly ILogger<Network> _logger;
 
-        public Network(bool isServer, string bindIP = "0.0.0.0", int port = 6900, string connectIP = "127.0.0.1")
+
+        public Network(ILogger<Network> logger, bool isServer, string bindIP = "0.0.0.0", int port = 6900, string connectIP = "127.0.0.1")
         {
             _isServer = isServer;
             _bindIP = bindIP;
             _connectIP = connectIP;
             _port = port;
+            _logger = logger;
 
             if (_isServer)
             {
@@ -33,6 +40,8 @@ namespace Backend.Infrastructure
                 _listener = null;
             }
         }
+
+        public ChannelReader<byte[]> SensorData => _sensorDataChannel.Reader; // Expose channel reader
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -49,22 +58,42 @@ namespace Backend.Infrastructure
         private async Task StartServerAsync(CancellationToken cancellationToken)
         {
             _listener?.Start();
-            Console.WriteLine($"Server started on {_bindIP}:{_port}");
+            _logger.LogInformation($"TcpServer started on {_bindIP}:{_port}");
 
             while (_running && !cancellationToken.IsCancellationRequested)
             {
                 try
                 {
                     var client = await _listener!.AcceptTcpClientAsync(cancellationToken);
-                    Console.WriteLine($"New connection from {client.Client.RemoteEndPoint}");
+                    _logger.LogInformation($"New connection from {client.Client.RemoteEndPoint}");
 
-                    _ = HandleClientAsync(client, cancellationToken);
+                    _client = client; // Set the new client as the active connection
+                    _stream = _client.GetStream(); // Get the network stream for communication
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await HandleClientAsync(client, cancellationToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"Client error: {ex.Message}");
+                        }
+                    }, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("TCP Server is shutting down gracefully due to cancellation.");
+                    break;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Server error: {ex.Message}");
+                    _logger.LogError($"Server error: {ex.Message}");
                 }
             }
+
+             _listener?.Stop(); // Ensure the listener is fully stopped
         }
 
         private async Task HandleClientAsync(TcpClient client, CancellationToken cancellationToken)
@@ -76,19 +105,40 @@ namespace Backend.Infrastructure
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    int bytesRead = await stream.ReadAsync(buffer, cancellationToken);
-                    if (bytesRead == 0) break; // Connection closed
+                    try
+                    {
+                        int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                        if (bytesRead == 0) break;  // Client disconnected
 
-                    string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    Console.WriteLine($"Received JSON: {jsonMessage}");
+                        byte[] receivedBytes = new byte[bytesRead];
+                        Array.Copy(buffer, receivedBytes, bytesRead); // Copy only the received data
+                        //string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
-                    // The raw sensor data is simply received, and it's up to the background service to handle it.
-                    // This could be sent to a queue or event handler that other parts of your app use.
+                        try
+                        {
+                            await _sensorDataChannel.Writer.WriteAsync(receivedBytes, cancellationToken); // Push data to channel
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"Error writing to channel: {ex.Message}");
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // This will be triggered when the cancellation token is signaled.
+                        _logger.LogInformation("Client handling canceled.");
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"Error processing client data: {ex.Message}");
+                        break;  // Break the loop on error
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Client disconnected: {ex.Message}");
+                _logger.LogInformation($"Client disconnected: {ex.Message}");
             }
         }
 
@@ -101,7 +151,7 @@ namespace Backend.Infrastructure
                     _client = new TcpClient();
                     await _client.ConnectAsync(_connectIP, _port, cancellationToken);
                     _stream = _client.GetStream();
-                    Console.WriteLine($"Connected to {_connectIP}:{_port}");
+                    _logger.LogInformation($"TcpClient Connected to {_connectIP}:{_port}");
 
                     // Start background task to maintain the heartbeat and connection.
                     _ = Task.Run(() => HeartbeatLoop(cancellationToken), cancellationToken);
@@ -109,12 +159,12 @@ namespace Backend.Infrastructure
                 }
                 catch (TaskCanceledException)
                 {
-                    Console.WriteLine("Client shutting down gracefully...");
+                    _logger.LogInformation("TcpClient shutting down gracefully...");
                     return;  // Exit cleanly
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Client connection failed: {ex.Message}. Retrying in 2s...");
+                    _logger.LogError($"TcpClient connection failed: {ex.Message}. Retrying in 2s...");
                     await Task.Delay(2000, cancellationToken);
                 }
             }
@@ -133,7 +183,7 @@ namespace Backend.Infrastructure
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Heartbeat failed: {ex.Message}");
+                    _logger.LogError($"Heartbeat failed: {ex.Message}");
                 }
             }
         }
@@ -151,7 +201,7 @@ namespace Backend.Infrastructure
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Send error: {ex.Message}");
+                _logger.LogError($"Send error: {ex.Message}");
                 await ReconnectAsync(cancellationToken);
             }
         }
@@ -167,7 +217,7 @@ namespace Backend.Infrastructure
                 _stream = null;
             }
 
-            Console.WriteLine("Reconnecting...");
+            _logger.LogInformation("TCP Reconnecting...");
             await StartClientAsync(cancellationToken);
         }
 
@@ -177,6 +227,14 @@ namespace Backend.Infrastructure
             _running = false;
             _client?.Close();
             _listener?.Stop();
+
+            if (_client != null)
+            {
+                _client.Close();
+                _client.Dispose();
+                _client = null;
+                _stream = null;
+            }
         }
     }
 }

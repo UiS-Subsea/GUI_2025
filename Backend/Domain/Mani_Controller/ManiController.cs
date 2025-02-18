@@ -30,7 +30,7 @@ namespace Backend.Domain.Mani_Controller
             JoystickPtr = SDL.SDL_JoystickOpen(joystickIndex);
             if (JoystickPtr == IntPtr.Zero)
             {
-                Console.WriteLine("Joystick not found!");
+                Console.WriteLine("Manipulator Joystick not found!");
             }
             else
             {
@@ -115,45 +115,20 @@ namespace Backend.Domain.Mani_Controller
                 return; // Not a button event, exit early
             }
 
-            // Now handle the button press/release using a single switch statement
+            // Now handle the button press/release
+            mani_buttons[e.jbutton.button] = buttonState;
+
             switch (e.jbutton.button)
             {
-                case 0: // "A" button
-                    mani_buttons[0] = buttonState;
-                    Console.WriteLine($"Button A {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 1: // "B" button
-                    mani_buttons[1] = buttonState;
-                    Console.WriteLine($"Button B {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 2: // "X" button
-                    mani_buttons[2] = buttonState;
-                    Console.WriteLine($"Button X {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 3: // "Y" button
-                    mani_buttons[3] = buttonState;
-                    Console.WriteLine($"Button Y {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 4: // "LB" (Left Bumper)
-                    mani_buttons[4] = buttonState;
-                    Console.WriteLine($"LB {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 5: // "RB" (Right Bumper)
-                    mani_buttons[5] = buttonState;
-                    Console.WriteLine($"RB {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 8: // "Left Joystick Press"
-                    mani_buttons[8] = buttonState;
-                    Console.WriteLine($"Left Joystick Press {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 9: // "Right Joystick Press"
-                    mani_buttons[9] = buttonState;
-                    Console.WriteLine($"Right Joystick Press {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                default:
-                    mani_buttons[e.jbutton.button] = buttonState;
-                    Console.WriteLine($"Unknown button {e.jbutton.button} {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
+                case 0: Console.WriteLine($"Button A {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 1: Console.WriteLine($"Button B {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 2: Console.WriteLine($"Button X {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 3: Console.WriteLine($"Button Y {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 4: Console.WriteLine($"LB {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 5: Console.WriteLine($"RB {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 8: Console.WriteLine($"Left Joystick Press {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 9: Console.WriteLine($"Right Joystick Press {(buttonState == 1 ? "pressed" : "released")}"); break;
+                default: Console.WriteLine($"Unknown button {e.jbutton.button} {(buttonState == 1 ? "pressed" : "released")}"); break;
             }
             mani_buttons[15] = mani_buttons[11] - mani_buttons[12];
         }
@@ -198,7 +173,7 @@ namespace Backend.Domain.Mani_Controller
                 int normalizedValue = NormalizeJoystick(axisIndex, axisValue);
                 UpdateAxis(axisIndex, normalizedValue);
 
-                mani_axis[6] = mani_axis[5] - mani_axis[2];
+                mani_axis[6] = mani_axis[5] - mani_axis[4];
 
                 Console.WriteLine("Mani Axis: " + string.Join(", ", mani_axis));
             }

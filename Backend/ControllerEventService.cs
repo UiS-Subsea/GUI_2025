@@ -10,12 +10,14 @@ namespace Backend
     {
         private RovController _rovController;
         private ManiController _maniController;
+        private readonly ILogger<SDL2PoolService> _logger;
         private readonly CommandQueueService<Dictionary<string, object>> _commandQueue;
-        public SDL2PoolService(CommandQueueService<Dictionary<string, object>> commandQueue)
+        public SDL2PoolService(CommandQueueService<Dictionary<string, object>> commandQueue, ILogger<SDL2PoolService> logger)
         {
             _rovController = new RovController();
             _maniController = new ManiController();
             _commandQueue = commandQueue;
+            _logger = logger;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -85,13 +87,13 @@ namespace Backend
 
                             if (sw.ElapsedMilliseconds > 1)  // Set a threshold, e.g., 10ms 
                             {
-                                Console.WriteLine($"[WARNING] EnqueueAsync took too long: {sw.ElapsedMilliseconds} ms");
+                                _logger.LogWarning("EnqueueAsync took too long: {ElapsedMilliseconds} ms", sw.ElapsedMilliseconds);
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error in event loop: {ex.Message}");
+                        _logger.LogError(ex, "Error in SDL event loop");
                     }
 
                     // Ensure the loop runs exactly 20 times per second
@@ -104,21 +106,21 @@ namespace Backend
         }
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("Shutting down...");
+            _logger.LogInformation("Shutting down SDL...");
     
             // Close joystick if open
             if (SDL.SDL_WasInit(SDL.SDL_INIT_JOYSTICK) != 0)
             {
                 _rovController.CloseJoystick();
                 _maniController.CloseJoystick();
-                Console.WriteLine("Joystick closed.");
+                _logger.LogInformation("Joystick closed.");
             }
 
             // Ensure SDL is only quit once
             if (SDL.SDL_WasInit(SDL.SDL_INIT_EVERYTHING) != 0)
             {
                 SDL.SDL_Quit();
-                Console.WriteLine("SDL Quit successful.");
+                _logger.LogInformation("SDL Quit successful.");
             }
             return base.StopAsync(cancellationToken);
         }

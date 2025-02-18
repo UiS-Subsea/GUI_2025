@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using Backend.Infrastructure;
+using Backend.Infrastructure.Interface;
+using Backend.Translation;
 
 namespace Backend.Domain.ROV_Sender
 {
@@ -7,25 +9,28 @@ namespace Backend.Domain.ROV_Sender
     {
         private readonly CommandQueueService<Dictionary<string, object>> _commandQueue;
         private readonly ILogger<RovCommandProcessor> _logger;
-        private readonly Network _network;
+        private readonly INetworkClient _clientNetwork;
+        private readonly RovTranslationLayer _rovTranslationLayer;
         private int _packetCount = 0;
         private Stopwatch _stopwatch = new Stopwatch();
 
-        public RovCommandProcessor(CommandQueueService<Dictionary<string, object>> commandQueue, ILogger<RovCommandProcessor> logger, IConfiguration config)
+        public RovCommandProcessor(CommandQueueService<Dictionary<string, object>> commandQueue, ILogger<RovCommandProcessor> logger, INetworkClient clientNetwork, RovTranslationLayer rovTranslation)
         {
             _commandQueue = commandQueue;
             _logger = logger;
+            _rovTranslationLayer = rovTranslation;
 
-            string host = config["RovSettings:Host"] ?? "0.0.0.0";
-            int port = int.Parse(config["RovSettings:Port"] ?? "5000");
-             _network = new Network(isServer: false, connectIP: host, port: port); // Clint MODE
+            //string host = config["RovSettings:Host"] ?? "0.0.0.0";
+            //int port = int.Parse(config["RovSettings:Port"] ?? "5000");
+            //_network = new Network(networklogger, isServer: false, connectIP: host, port: port); // Clint MODE
+            _clientNetwork = clientNetwork;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             try
             {
-                await _network.StartAsync(stoppingToken); // Start network client
+                await _clientNetwork.StartAsync(stoppingToken); // Start network client
             }
             catch (TaskCanceledException)
             {
@@ -43,13 +48,15 @@ namespace Backend.Domain.ROV_Sender
 
                     if (command != null)
                     {
-                        if (command.TryGetValue("timestamp", out object timestampObj) && timestampObj is DateTime timestamp)
+                        if (command.TryGetValue("timestamp", out object? timestampObj) && timestampObj is DateTime timestamp)
                         {
                             TimeSpan delay = DateTime.UtcNow - timestamp;
                             _logger.LogDebug("Queue Delay: {Delay} ms", delay.TotalMilliseconds);
                         }
 
-                        await _network.SendAsync(command, stoppingToken); // Use shared network instance
+                        var Translatedcommand = _rovTranslationLayer.Translate(command);
+
+                        await _clientNetwork.SendAsync(Translatedcommand, stoppingToken); // Use shared network instance
 
                         _packetCount++;
                     }

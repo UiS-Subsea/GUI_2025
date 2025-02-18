@@ -30,7 +30,7 @@ namespace Backend.Domain.ROV_Controller
             JoystickPtr = SDL.SDL_JoystickOpen(joystickIndex);
             if (JoystickPtr == IntPtr.Zero)
             {
-                Console.WriteLine("Joystick not found!");
+                Console.WriteLine("Rov Joystick not found!");
             }
             else
             {
@@ -115,45 +115,21 @@ namespace Backend.Domain.ROV_Controller
                 return; // Not a button event, exit early
             }
 
-            // Now handle the button press/release using a single switch statement
+            // Now handle the button press/release:
+            rov_buttons[e.jbutton.button] = buttonState;
+            
+             // Debug print statements
             switch (e.jbutton.button)
             {
-                case 0: // "A" button
-                    rov_buttons[0] = buttonState;
-                    Console.WriteLine($"Button A {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 1: // "B" button
-                    rov_buttons[1] = buttonState;
-                    Console.WriteLine($"Button B {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 2: // "X" button
-                    rov_buttons[2] = buttonState;
-                    Console.WriteLine($"Button X {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 3: // "Y" button
-                    rov_buttons[3] = buttonState;
-                    Console.WriteLine($"Button Y {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 4: // "LB" (Left Bumper)
-                    rov_buttons[4] = buttonState;
-                    Console.WriteLine($"LB {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 5: // "RB" (Right Bumper)
-                    rov_buttons[5] = buttonState;
-                    Console.WriteLine($"RB {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 8: // "Left Joystick Press"
-                    rov_buttons[8] = buttonState;
-                    Console.WriteLine($"Left Joystick Press {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                case 9: // "Right Joystick Press"
-                    rov_buttons[9] = buttonState;
-                    Console.WriteLine($"Right Joystick Press {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
-                default:
-                    rov_buttons[e.jbutton.button] = buttonState;
-                    Console.WriteLine($"Unknown button {e.jbutton.button} {(buttonState == 1 ? "pressed" : "released")}");
-                    break;
+                case 0: Console.WriteLine($"Button A {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 1: Console.WriteLine($"Button B {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 2: Console.WriteLine($"Button X {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 3: Console.WriteLine($"Button Y {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 4: Console.WriteLine($"LB {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 5: Console.WriteLine($"RB {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 8: Console.WriteLine($"Left Joystick Press {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 9: Console.WriteLine($"Right Joystick Press {(buttonState == 1 ? "pressed" : "released")}"); break;
+                default: Console.WriteLine($"Unknown button {e.jbutton.button} {(buttonState == 1 ? "pressed" : "released")}"); break;
             }
         }
 
@@ -195,7 +171,7 @@ namespace Backend.Domain.ROV_Controller
                 int normalizedValue = NormalizeJoystick(axisIndex, axisValue);
                 UpdateAxis(axisIndex, normalizedValue);
 
-                rov_axis[6] = rov_axis[5] - rov_axis[2];
+                rov_axis[6] = rov_axis[5] - rov_axis[4]; // Z axis
 
                 //Console.WriteLine("ROV Axis: " + string.Join(", ", rov_axis));
             }
@@ -205,10 +181,10 @@ namespace Backend.Domain.ROV_Controller
         {
             switch (axisIndex)
             {
-                case 0: rov_axis[0] = value; break; // X axis
-                case 1: rov_axis[1] = value; break; // Y axis
-                case 2: rov_axis[2] = value; break; // Z axis
-                case 3: rov_axis[3] = value; break; // Rotation
+                case 0: rov_axis[0] = value; break; // Y axis
+                case 1: rov_axis[1] = value; break; // X axis
+                case 2: rov_axis[2] = value; break; //
+                case 3: rov_axis[3] = value; break; // Rotation 
                 case 4: rov_axis[4] = value; break; // 
                 case 5: rov_axis[5] = value; break; // 
 

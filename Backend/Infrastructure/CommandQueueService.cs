@@ -6,8 +6,9 @@ namespace Backend.Infrastructure
     public class CommandQueueService<T>
     {
         private readonly Channel<T> _channel;
+        private readonly ILogger<CommandQueueService<T>> _logger;
 
-        public CommandQueueService()
+        public CommandQueueService(ILogger<CommandQueueService<T>> logger)
         {
             // Unbounded channel for fastest processing
             _channel = Channel.CreateUnbounded<T>(new UnboundedChannelOptions
@@ -15,6 +16,7 @@ namespace Backend.Infrastructure
                 SingleReader = true,  // Optimized for one consumer
                 SingleWriter = false  // Allow multiple producers
             });
+            _logger = logger;
         }
 
         // Enqueue a command (Producer)
@@ -31,7 +33,7 @@ namespace Backend.Infrastructure
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Queue enqueue error: {ex.Message}");
+            _logger.LogError($"Queue enqueue error: {ex.Message}");
             return false;
         }
     }
@@ -45,12 +47,12 @@ namespace Backend.Infrastructure
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine("Queue dequeue canceled.");
+                _logger.LogError("Queue dequeue canceled.");
                 return default;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Queue dequeue error: {ex.Message}");
+                _logger.LogError($"Queue dequeue error: {ex.Message}");
                 return default;
             }
         }
