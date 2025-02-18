@@ -11,14 +11,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // State object to store all sensor data (temperature, humidity, pressure, battery).
   // It starts with null values, which will be updated as data comes in.
   const [sensorData, setSensorData] = useState<{
-    Temperature: number | null;
-    humidity: number | null;
-    pressure: number | null;
-    battery: {
-      percentage: number | null;
-      voltage: number | null;
-      current: number | null;
-    };
     THRUSTPAADRAG: {
       HFF: Number | 0;
       HHB: Number | 0;
@@ -67,14 +59,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       Power_temp: Number | 0;
     };
   }>({
-    Temperature: null,
-    humidity: null,
-    pressure: null,
-    battery: {
-      percentage: null,
-      voltage: null,
-      current: null,
-    },
     THRUSTPAADRAG: {
       HFF: 0,
       HHB: 0,
@@ -144,15 +128,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
           for (const item of data) {
             if (!item || typeof item !== 'object' || !item.Type) {
-              console.warn('Skipping invalid data item:', item);
-              console.log('Type of data.Type:', typeof item.Type);
-              console.log('data.Type:', item.Type);
               continue;
             }
-
-            console.log('Received data:', item);
-            console.log('Type of data.Type:', typeof item.Type);
-            console.log('data.Type:', item.Type);
 
             switch (item.Type) {
               case 'THRUSTPAADRAG':
