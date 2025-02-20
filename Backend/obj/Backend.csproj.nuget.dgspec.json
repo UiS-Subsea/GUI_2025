@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\backend\\Backend.csproj": {}
+    "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\Backend\\Backend.csproj": {}
   },
   "projects": {
-    "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\backend\\Backend.csproj": {
+    "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\Backend\\Backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\backend\\Backend.csproj",
+        "projectUniqueName": "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\Backend\\Backend.csproj",
         "projectName": "Backend",
-        "projectPath": "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\backend\\Backend.csproj",
+        "projectPath": "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\Backend\\Backend.csproj",
         "packagesPath": "C:\\Users\\Azazel\\.nuget\\packages\\",
-        "outputPath": "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\backend\\obj\\",
+        "outputPath": "C:\\Media\\UiS\\Bachlor2025\\BachelorGUI2025\\Backend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

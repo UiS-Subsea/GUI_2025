@@ -70,239 +70,257 @@ namespace Backend.Translation
         }
 
 
-        private object BuildRovPacket(int[] rov_axis)
+        private Dictionary<int, object> BuildRovPacket(int[] rov_axis)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                33, new int[]
-                {
-                    GetValue(rov_axis, 1), // X axis
-                    GetValue(rov_axis, 0), // Y axis
-                    GetValue(rov_axis, 6), // Z axis
-                    GetValue(rov_axis, 3), // Rotation
-                    0, 0, 0, 0
+                { 33, new int[]
+                    {
+                        GetValue(rov_axis, 1), // X axis
+                        GetValue(rov_axis, 0), // Y axis
+                        GetValue(rov_axis, 6), // Z axis
+                        GetValue(rov_axis, 3), // Rotation
+                        0, 0, 0, 0
+                    }
                 }
             };
         }
 
-        private object BuildAutonomPacket(int[] autonomdata)
+        private Dictionary<int, object> BuildAutonomPacket(int[] autonomdata)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                33, new int[]
-                {
-                    GetValue(autonomdata, 0), // X axis
-                    GetValue(autonomdata, 1), // Y axis
-                    GetValue(autonomdata, 2), // Z axis
-                    GetValue(autonomdata, 3), // Rotation
-                    0, 0, 0, 0
+                { 33, new int[]
+                    {
+                        GetValue(autonomdata, 0), // X axis
+                        GetValue(autonomdata, 1), // Y axis
+                        GetValue(autonomdata, 2), // Z axis
+                        GetValue(autonomdata, 3), // Rotation
+                        0, 0, 0, 0
+                    }
                 }
             };
         }
 
-        private object BuildManiPacket(int[] mani_dpad, int[] mani_joystick)
+        private Dictionary<int, object> BuildManiPacket(int[] mani_dpad, int[] mani_joystick)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                34, new int[]
-                {
-                    GetValue(mani_dpad, 1) *100,
-                    GetValue(mani_joystick, 0), //MANIPULATOR ROTATION
-                    GetValue(mani_joystick, 4), //MANIPULATOR TILT
-                    GetValue(mani_joystick, 6), //MANIPULATOR GRAB RELEASE
-                    0, 0, 0, 0,
+                { 34, new int[]
+                    {
+                        GetValue(mani_dpad, 1) *100,
+                        GetValue(mani_joystick, 0), //MANIPULATOR ROTATION
+                        GetValue(mani_joystick, 4), //MANIPULATOR TILT
+                        GetValue(mani_joystick, 6), //MANIPULATOR GRAB RELEASE
+                        0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildControlsResetPacket(int[] Controls_Reset)
+        private Dictionary<int, object> BuildControlsResetPacket(int[] Controls_Reset)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                97, new int[]
-                {
-                    GetValue(Controls_Reset, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 97, new int[]
+                    {
+                        GetValue(Controls_Reset, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildThrusterControlsResetPacket(int[] Thruster_Controls_Reset)
+        private Dictionary<int, object> BuildThrusterControlsResetPacket(int[] Thruster_Controls_Reset)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                98, new int[]
-                {
-                    GetValue(Thruster_Controls_Reset, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 98, new int[]
+                    {
+                        GetValue(Thruster_Controls_Reset, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildManipulatorControlsResetPacket(int[] Manipulator_Controls_Reset)
+        private Dictionary<int, object> BuildManipulatorControlsResetPacket(int[] Manipulator_Controls_Reset)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                99, new int[]
-                {
-                    GetValue(Manipulator_Controls_Reset, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 99, new int[]
+                    {
+                        GetValue(Manipulator_Controls_Reset, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildDepthResetPacket(int[] Depth_Reset)
+        private Dictionary<int, object> BuildDepthResetPacket(int[] Depth_Reset)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                66, new int[]
-                {
-                    GetValue(Depth_Reset, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 66, new int[]
+                    {
+                        GetValue(Depth_Reset, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildAnglesResetPacket(int[] Angles_Reset)
+        private Dictionary<int, object> BuildAnglesResetPacket(int[] Angles_Reset)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                66, new int[]
-                {
-                    GetValue(Angles_Reset, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 66, new int[]
+                    {
+                        GetValue(Angles_Reset, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildIMUCalibratePacket(int[] IMU_Calibrate)
+        private Dictionary<int, object> BuildIMUCalibratePacket(int[] IMU_Calibrate)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                66, new int[]
-                {
-                    GetValue(IMU_Calibrate, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 66, new int[]
+                    {
+                        GetValue(IMU_Calibrate, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildRegulatorTuningPacket(int[] Regulator_Tuning)
+        private Dictionary<int, object> BuildRegulatorTuningPacket(int[] Regulator_Tuning)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                42, new int[]
-                {
-                    GetValue(Regulator_Tuning, 0),
-                    GetValue(Regulator_Tuning, 1),
-                    0, 0, 0, 0, 0, 0,
+                { 42, new int[]
+                    {
+                        GetValue(Regulator_Tuning, 0),
+                        GetValue(Regulator_Tuning, 1),
+                        0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildToggleAllRegulatorPacket(int[] Toggle_All_Regulator)
+        private Dictionary<int, object> BuildToggleAllRegulatorPacket(int[] Toggle_All_Regulator)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                32, new int[]
-                {
-                    GetValue(Toggle_All_Regulator, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 32, new int[]
+                    {
+                        GetValue(Toggle_All_Regulator, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildToggleRollRegulatorPacket(int[] Toggle_Roll_Regulator)
+        private Dictionary<int, object> BuildToggleRollRegulatorPacket(int[] Toggle_Roll_Regulator)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                32, new int[]
-                {
-                    GetValue(Toggle_Roll_Regulator, 0), //rull i gammle gui
-                    0, 0, 0, 0, 0, 0, 0,
+                { 32, new int[]
+                    {
+                        GetValue(Toggle_Roll_Regulator, 0), //rull i gammle gui
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildToggleStampRegulatorPacket(int[] Toggle_Stamp_Regulator)
+        private Dictionary<int, object> BuildToggleStampRegulatorPacket(int[] Toggle_Stamp_Regulator)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                32, new int[]
-                {
-                    GetValue(Toggle_Stamp_Regulator, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 32, new int[]
+                    {
+                        GetValue(Toggle_Stamp_Regulator, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildToggleDepthRegulatorPacket(int[] Toggle_Depth_Regulator)
+        private Dictionary<int, object> BuildToggleDepthRegulatorPacket(int[] Toggle_Depth_Regulator)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                32, new int[]
-                {
-                    GetValue(Toggle_Depth_Regulator, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 32, new int[]
+                    {
+                        GetValue(Toggle_Depth_Regulator, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildFrontLightPacket(int[] Front_Light_On)
+        private Dictionary<int, object> BuildFrontLightPacket(int[] Front_Light_On)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                98, new int[]
-                {
-                    GetValue(Front_Light_On, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 98, new int[]
+                    {
+                        GetValue(Front_Light_On, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildBottomLightPacket(int[] Bottom_Light_On)
+        private Dictionary<int, object> BuildBottomLightPacket(int[] Bottom_Light_On)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                99, new int[]
-                {
-                    GetValue(Bottom_Light_On, 0),
-                    0, 0, 0, 0, 0, 0, 0,
+                { 99, new int[]
+                    {
+                        GetValue(Bottom_Light_On, 0),
+                        0, 0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildFrontLightIntensityPacket(int[] Front_Light_Slider)
+        private Dictionary<int, object> BuildFrontLightIntensityPacket(int[] Front_Light_Slider)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                98, new int[]
-                {
-                    0,
-                    GetValue(Front_Light_Slider, 1),
-                    0, 0, 0, 0, 0, 0,
+                { 98, new int[]
+                    {
+                        0,
+                        GetValue(Front_Light_Slider, 1),
+                        0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildBottomLightIntensityPacket(int[] Bottom_Light_Slider)
+        private Dictionary<int, object> BuildBottomLightIntensityPacket(int[] Bottom_Light_Slider)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                99, new int[]
-                {
-                    0,
-                    GetValue(Bottom_Light_Slider, 1),
-                    0, 0, 0, 0, 0, 0,
+                { 99, new int[]
+                    {
+                        0,
+                        GetValue(Bottom_Light_Slider, 1),
+                        0, 0, 0, 0, 0, 0,
+                    }
                 }
             };
         }
 
-        private object BuildCameraTiltPacket(int[] tilt)
+        private Dictionary<int, object> BuildCameraTiltPacket(int[] tilt)
         {
-            return new object[]
+            return new Dictionary<int, object>
             {
-                200, new object[] { "tilt", GetValue(tilt, 0) }
+                { 200, new object[] { "tilt", GetValue(tilt, 0) } }
             };
         }
 

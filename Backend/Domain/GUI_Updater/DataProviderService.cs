@@ -58,11 +58,10 @@ namespace Backend.Domain.GUI_Updater
 
         private async Task ProcessSensorDataAsync(CancellationToken stoppingToken)
         {
-            var random = new Random();
 
             // Continuously wait for new sensor data until service stops
             while (!stoppingToken.IsCancellationRequested && await _sensorDataReader.WaitToReadAsync(stoppingToken))
-            {
+            { 
                 try
                 {
                     while (_sensorDataReader.TryRead(out var sensorData))  // Read sensor data from channel
@@ -78,10 +77,9 @@ namespace Backend.Domain.GUI_Updater
                         {
                             _logger.LogInformation($"Sending Sensor Data to WebSocket: {translatedData[0]}");
                         }
-                        await _webSocketServer.SendToAllClientsAsync(translatedData, stoppingToken);
 
                         // Send data to WebSocket clients and handle cancellation correctly
-                        //await _webSocketServer.SendToAllClientsAsync(translatedData, stoppingToken);
+                        await _webSocketServer.SendToAllClientsAsync(translatedData, stoppingToken);
                     }
                 }
                 catch (TaskCanceledException)
@@ -95,6 +93,7 @@ namespace Backend.Domain.GUI_Updater
                     await Task.Delay(1000, stoppingToken);  // Wait before retrying
                 }
             }
+            _logger.LogError("it has exited the loop!!!!!!!!");
         }
     }
 }
