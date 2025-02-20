@@ -16,29 +16,34 @@ namespace Backend.Translation
                 string dataStr = _incompletePacket + Encoding.UTF8.GetString(tcpData);
                 _incompletePacket = "";
 
-                if (!dataStr.StartsWith("*")) return translatedPackets;
-                if (!dataStr.EndsWith("*"))
+                if (!dataStr.StartsWith("\"*\"")) return translatedPackets;
+                if (!dataStr.EndsWith("\"*\""))
                 {
-                    int lastStarIndex = dataStr.LastIndexOf("*");
+                    int lastStarIndex = dataStr.LastIndexOf("\"*\"");
                     _incompletePacket = dataStr.Substring(lastStarIndex);
                     dataStr = dataStr.Substring(0, lastStarIndex);
                 }
 
-                string[] jsonStrings = dataStr.Split('*', StringSplitOptions.RemoveEmptyEntries);
+                string[] jsonStrings = dataStr.Split("\"*\"", StringSplitOptions.RemoveEmptyEntries);
 
                 foreach (string packet in jsonStrings)
                 {
                     try
                     {
-                        var parsedJson = JsonSerializer.Deserialize<List<JsonElement>>(packet);
-                        if (parsedJson == null || parsedJson.Count < 2) continue;
+                        if (packet.Contains("Error") || packet.Contains("Info") || packet.Contains("Alarm")) continue;
 
-                        int canId = parsedJson[0].GetInt32(); // Convert first element to int
-                        var rawData = parsedJson[1];
-                        List<object> convertedData = ConvertJsonData(rawData);
+                        var parsedJson = JsonSerializer.Deserialize<Dictionary<int, JsonElement>>(packet);
+                        if (parsedJson == null || parsedJson.Count == 0) continue;
 
+                        // Extract the first (and only) key-value pair
+                        var (canId, rawData) = parsedJson.First();
+                        var convertedData = ConvertJsonData(rawData);
 
-                        var translated = TranslateData(new List<object> { canId, convertedData });
+                        var translated = TranslateData(new Dictionary<string, object> { 
+                            { "can_id", canId }, 
+                            { "data", convertedData } 
+                        });
+
                         if (translated != null)
                             translatedPackets.Add(translated);
                     }
@@ -57,13 +62,17 @@ namespace Backend.Translation
         }
 
         // Translates data differently based on CAN ID
-        private object? TranslateData(List<object> data)
+        private object? TranslateData(Dictionary<string, object> data)
         {
 
-            if (data.Count < 2 || data[0] is not int canId || data[1] is not List<object> dataArray)
+            if (!data.TryGetValue("can_id", out var canIdObj) || canIdObj is not int canId)
                 return null;
 
-            List<object> values = dataArray;
+            if (!data.TryGetValue("data", out var dataArrayObj))
+                return null;
+
+            // Ensure `dataArrayObj` is always a list for consistent handling
+            List<object> values = dataArrayObj is List<object> list ? list : new List<object> { dataArrayObj };
 
             // Different mapping based on CAN ID
             return canId switch
@@ -169,22 +178,26 @@ namespace Backend.Translation
             }
             return result;
         }
+
         // Helper function to convert JSON arrays properly
-        public static List<object> ConvertJsonData(JsonElement jsonElement)
+        public static object ConvertJsonData(JsonElement jsonElement)
         {
-            List<object> outerList = new();
 
-            if (jsonElement.ValueKind != JsonValueKind.Array)
+            if (jsonElement.ValueKind == JsonValueKind.Array)
             {
-                throw new ArgumentException("Expected JSON array at the root level.");
+                List<object> outerList = new();
+
+
+                foreach (var element in jsonElement.EnumerateArray()) // ✅ Iterate properly
+                {
+                    outerList.Add(ConvertElement(element));
+                }
+
+                return outerList;
             }
 
-            foreach (var element in jsonElement.EnumerateArray()) // ✅ Iterate properly
-            {
-                outerList.Add(ConvertElement(element));
-            }
-
-            return outerList;
+            // If it's a single value, convert it directly
+                return ConvertJsonValue(jsonElement);
         }
 
         private static object ConvertElement(JsonElement element)

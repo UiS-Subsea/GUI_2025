@@ -55,7 +55,7 @@ namespace Backend.Domain.ROV_Sender
                         }
 
                         var Translatedcommand = _rovTranslationLayer.Translate(command);
-
+                        _logger.LogInformation($"Translation: {Translatedcommand}");
                         await _clientNetwork.SendAsync(Translatedcommand, stoppingToken); // Use shared network instance
 
                         _packetCount++;

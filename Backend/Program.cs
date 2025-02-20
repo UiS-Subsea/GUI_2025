@@ -15,17 +15,7 @@ builder.Logging.AddDebug();       // (Optional) Add debug logging
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Register CORS service and configure allowed origins.
-/*builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAllOrigins", policy =>
-    {
-        policy.AllowAnyOrigin() // Allow all origins
-              .AllowAnyMethod()  // Allow all HTTP methods (GET, POST, etc.)
-              .AllowAnyHeader() // Allow all headers
-    });
-});
-*/
+// Register CORS service and configure AllowSpecificOrigins.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
@@ -45,14 +35,11 @@ builder.Services.AddSingleton<CommandQueueService<Dictionary<string, object>>>()
 builder.Services.AddSingleton<WebSocketServer>(); // Singleton WebSocket server to handle connections
 builder.Services.AddSingleton<GUITranslationLayer>();
 builder.Services.AddSingleton<RovTranslationLayer>();
-builder.Services.AddSingleton<INetworkServer, Network>(sp =>
-{
-    return ActivatorUtilities.CreateInstance<Network>(sp, true, "0.0.0.0", 6901);
-});
-builder.Services.AddSingleton<INetworkClient, Network>(sp =>
-{
-    return ActivatorUtilities.CreateInstance<Network>(sp, false, "127.0.0.1", 6900);
-});
+
+builder.Services.AddSingleton<Network>();
+builder.Services.AddSingleton<INetworkClient>(sp => sp.GetRequiredService<Network>());
+builder.Services.AddSingleton<INetworkServer>(sp => sp.GetRequiredService<Network>());
+
 
 // Background Service that Dequeue Commands, Translate it, And Send it to ROV.
 builder.Services.AddHostedService<RovCommandProcessor>();
