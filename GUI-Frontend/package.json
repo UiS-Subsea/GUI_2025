@@ -6,7 +6,7 @@
   "main": ".vite/build/main.js",
   "author": {
     "name": "Lan Anh Tran, Ørjan Østlyngen, Maliwan Misjoen"
-    },
+  },
   "license": "MIT",
   "packageManager": "yarn@1.22.21",
   "scripts": {
