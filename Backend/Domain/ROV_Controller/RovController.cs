@@ -171,7 +171,7 @@ namespace Backend.Domain.ROV_Controller
                 int normalizedValue = NormalizeJoystick(axisIndex, axisValue);
                 UpdateAxis(axisIndex, normalizedValue);
 
-                rov_axis[6] = rov_axis[5] - rov_axis[4]; // Z axis
+                rov_axis[6] = rov_axis[5] - rov_axis[2]; // Z axis
 
                 //Console.WriteLine("ROV Axis: " + string.Join(", ", rov_axis));
             }

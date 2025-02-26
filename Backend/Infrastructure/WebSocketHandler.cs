@@ -28,7 +28,21 @@ namespace Backend.Infrastructure
             _logger = logger;
 
             // WebSocket connections will be accepted at ws://localhost:{port}/ws/
-            _httpListener.Prefixes.Add($"http://localhost:{_port}/ws/");
+            //_httpListener.Prefixes.Add($"http://localhost:{_port}/ws/");
+            // Check if we are running in Docker by inspecting the environment variable or file
+            bool isInDocker = Environment.GetEnvironmentVariable("DOCKER_ENV") == "1" ||
+                            (File.Exists("/proc/1/cgroup") && File.ReadAllText("/proc/1/cgroup").Contains("docker"));
+
+            if (isInDocker)
+            {
+                // Running inside Docker, use 'backend' as hostname
+                _httpListener.Prefixes.Add($"http://*:{_port}/ws/");
+            }
+            else
+            {
+                // Running outside Docker, use 'localhost'
+                _httpListener.Prefixes.Add($"http://localhost:{_port}/ws/");
+            }
         }
 
         /// <summary>

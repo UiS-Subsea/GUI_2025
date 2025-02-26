@@ -30,7 +30,7 @@ namespace Backend.Translation
                 {
                     try
                     {
-                        if (packet.Contains("Error") || packet.Contains("Info") || packet.Contains("Alarm")) continue;
+                        if (packet.Contains("Error") || packet.Contains("Info") || packet.Contains("Alarm") ||  packet.Contains("heartbeat")) continue;
 
                         var parsedJson = JsonSerializer.Deserialize<Dictionary<int, JsonElement>>(packet);
                         if (parsedJson == null || parsedJson.Count == 0) continue;

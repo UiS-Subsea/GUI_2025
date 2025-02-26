@@ -77,9 +77,13 @@ namespace Backend.Domain.GUI_Updater
                         {
                             _logger.LogInformation($"Sending Sensor Data to WebSocket: {translatedData[0]}");
                         }
+                        var myObject = new { 
+                            Type = "COMTEMP", 
+                            Com_temp = Math.Round(120.0, 2) 
+                        };
 
                         // Send data to WebSocket clients and handle cancellation correctly
-                        await _webSocketServer.SendToAllClientsAsync(translatedData, stoppingToken);
+                        await _webSocketServer.SendToAllClientsAsync(myObject, stoppingToken);
                     }
                 }
                 catch (TaskCanceledException)
@@ -93,7 +97,6 @@ namespace Backend.Domain.GUI_Updater
                     await Task.Delay(1000, stoppingToken);  // Wait before retrying
                 }
             }
-            _logger.LogError("it has exited the loop!!!!!!!!");
         }
     }
 }

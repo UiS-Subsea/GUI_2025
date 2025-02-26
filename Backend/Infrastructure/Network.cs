@@ -128,11 +128,11 @@ namespace Backend.Infrastructure
                 // Check if the data is a List<Dictionary<int, object>>
                 if (data is List<object> listData)
                 {
-                    // Wrap each dictionary inside "*"
+                    // Wrap each dictionary inside "*" and Serialize the modified list.
                     var formattedData = listData.Select(dict => $"\"*\"{JsonSerializer.Serialize(dict)}\"*\"").ToList();
-
-                    // Serialize the modified list
-                    string jsonMessage = JsonSerializer.Serialize(formattedData);
+                    // Concat the list into one single Json String.
+                    string jsonMessage = string.Concat(formattedData);
+                    _logger.LogInformation("Sending Comand String: " + jsonMessage);
                     byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonMessage);
                     await _stream.WriteAsync(jsonBytes, cancellationToken);
                 }

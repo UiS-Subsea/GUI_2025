@@ -173,7 +173,7 @@ namespace Backend.Domain.Mani_Controller
                 int normalizedValue = NormalizeJoystick(axisIndex, axisValue);
                 UpdateAxis(axisIndex, normalizedValue);
 
-                mani_axis[6] = mani_axis[5] - mani_axis[4];
+                mani_axis[6] = mani_axis[5] - mani_axis[2];
 
                 Console.WriteLine("Mani Axis: " + string.Join(", ", mani_axis));
             }
