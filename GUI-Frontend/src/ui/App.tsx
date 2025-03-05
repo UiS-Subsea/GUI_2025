@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import React, { useState, useEffect } from 'react';
 
 import { HashRouter as Router, Route, Routes } from 'react-router-dom';

@@ -14,8 +14,8 @@ export const Sensor = () => {
   const { temperature, humidity, pressure } = sensorData;
 
   return (
-    <div className='flex flex-col gap-4 justify-center items-center lg:text-[20px] p-2'>
-      <p className='lg:text-[20px] text-[18px]'>Sensor</p>
+    <div className='flex flex-col gap-4 justify-center items-center lg:text-[25px] p-2'>
+      <p className='lg:text-[25px] text-[18px]'>Sensor</p>
       <div className=' text-[15px] w-full gap-7 flex-row flex lg:text-[20px]'>
         <p className='max-w-[140px] h-full w-full lg:max-h-[70px]'>Pressure </p>
         <p className='dark:text-[#4bd5ff] text-whites'>{data.pressure}</p>

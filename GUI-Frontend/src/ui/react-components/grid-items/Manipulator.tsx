@@ -26,7 +26,7 @@ export const Manipulator = () => {
           <img className='' src={imagePath} width={40} alt='Connection status' />
         </div>
         <div className='manipulatorImage h-full w-full pt-7 pb-7 flex justify-center items-center flex-col'>
-          <img src='./assets/images/rov_from_side_arms.png' alt='Manipulator' width={400} />
+          <img src='./assets/images/rov_from_side_arms.png' alt='Manipulator' width={300} />
         </div>
         <div className='p-2 connectionText h-full flex flex-row pt-4'>
           <p className=' text-[18px]'>Connected to: </p>
