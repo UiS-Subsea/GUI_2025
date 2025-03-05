@@ -4,9 +4,37 @@ import Switch from 'react-switch';
 
 export const LightSettings = () => {
   const [frontOn, setFrontOn] = React.useState(false);
-  const handleFront = () => setFrontOn(!frontOn);
   const [backOn, setBackOn] = React.useState(false);
-  const handleBack = () => setBackOn(!backOn);
+
+  const sendLightCommand = async (lightType: string, isOn: boolean) => {
+    const value = isOn ? 2 : 0; // 2 On, 0 Off -  Sjekk
+    try {
+      const response = await fetch(`http://localhost:5017/api/rov/${lightType}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ value }),
+      });
+
+      const result = await response.text();
+      console.log(result);
+    } catch (error) {
+      console.error("Error sending light command:", error);
+    }
+  };
+
+  const handleFront = () => {
+    const newState = !frontOn;
+    setFrontOn(newState);
+    sendLightCommand("Front_Light_On", newState);
+  };
+
+  const handleBack = () => {
+    const newState = !backOn;
+    setBackOn(newState);
+    sendLightCommand("Bottom_Light_On", newState);
+  };
 
   return (
     <>
