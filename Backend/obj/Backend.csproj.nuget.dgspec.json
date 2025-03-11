@@ -62,10 +62,6 @@
               "target": "Package",
               "version": "[8.0.11, )"
             },
-            "Microsoft.AspNetCore.SignalR": {
-              "target": "Package",
-              "version": "[1.2.0, )"
-            },
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
               "version": "[9.0.1, )"
@@ -77,6 +73,10 @@
             "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": {
               "target": "Package",
               "version": "[1.21.0, )"
+            },
+            "NetMQ": {
+              "target": "Package",
+              "version": "[4.0.1.13, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",

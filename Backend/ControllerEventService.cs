@@ -1,6 +1,7 @@
 using Backend.Domain.Mani_Controller;
 using Backend.Domain.ROV_Controller;
 using Backend.Infrastructure;
+using Backend.Infrastructure.Interface;
 using SDL2;
 using System.Diagnostics;
 
@@ -8,14 +9,18 @@ namespace Backend
 {
     public class SDL2PoolService : BackgroundService
     {
-        private RovController _rovController;
-        private ManiController _maniController;
+        private readonly IROVController _rovController;
+        private readonly IManiController _maniController;
         private readonly ILogger<SDL2PoolService> _logger;
-        private readonly CommandQueueService<Dictionary<string, object>> _commandQueue;
-        public SDL2PoolService(CommandQueueService<Dictionary<string, object>> commandQueue, ILogger<SDL2PoolService> logger)
+        private readonly ICommandQueueService<Dictionary<string, object>> _commandQueue;
+        public SDL2PoolService(
+            ICommandQueueService<Dictionary<string, object>> commandQueue,
+            ILogger<SDL2PoolService> logger,
+            IROVController rovController,
+            IManiController maniController)
         {
-            _rovController = new RovController();
-            _maniController = new ManiController();
+            _rovController = rovController;
+            _maniController = maniController;
             _commandQueue = commandQueue;
             _logger = logger;
         }
@@ -42,6 +47,7 @@ namespace Backend
                 {
 
                     stopwatch.Restart(); // Start measuring the loop time
+                    
 
                     try
                     {
@@ -53,7 +59,7 @@ namespace Backend
                             // Checks if Event belongs to the ROV, if dose then process it.
                             if (_rovController.IsRelevantEvent(e))
                             {
-                                _rovController.CheckJoystickConnection();
+                                //_rovController.CheckJoystickConnection();
                                 // Process the Event and stores data internally in the ROVController.
                                 _rovController.ProcessEvents(e, stoppingToken);
                             }
@@ -61,12 +67,12 @@ namespace Backend
                             // Checks if Event belongs to the Manipulator, if dose then process it.
                             if (_maniController.IsRelevantEvent(e))
                             {
-                                _maniController.CheckJoystickConnection();
+                                //_maniController.CheckJoystickConnection();
                                 // Process the Event and stores data internally in the ManiController.
                                 _maniController.ProcessEvents(e, stoppingToken);
                             }
+                            
                         }
-
                         // Get final data at the end of the tick
                         Dictionary<string, object> rovData = _rovController.GetState();
                         Dictionary<string, object> maniData = _maniController.GetState();

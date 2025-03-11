@@ -1,5 +1,7 @@
 using Backend;
 using Backend.Domain.GUI_Updater;
+using Backend.Domain.Mani_Controller;
+using Backend.Domain.ROV_Controller;
 using Backend.Domain.ROV_Sender;
 using Backend.Infrastructure;
 using Backend.Infrastructure.Interface;
@@ -31,10 +33,15 @@ builder.Services.AddCors(options =>
 
 
 // Add services to the container
-builder.Services.AddSingleton<CommandQueueService<Dictionary<string, object>>>();
+builder.Services.AddSingleton<ICommandQueueService<Dictionary<string, object>>, CommandQueueService<Dictionary<string, object>>>();
+builder.Services.AddSingleton<IROVController, RovController>();
+builder.Services.AddSingleton<IManiController, ManiController>();
 builder.Services.AddSingleton<WebSocketServer>(); // Singleton WebSocket server to handle connections
-builder.Services.AddSingleton<GUITranslationLayer>();
-builder.Services.AddSingleton<RovTranslationLayer>();
+builder.Services.AddSingleton<IGUITranslationLayer, GUITranslationLayer>();
+builder.Services.AddSingleton<IRovTranslationLayer, RovTranslationLayer>();
+
+builder.Services.AddSingleton<PythonProcessManager>();
+builder.Services.AddHostedService<PythonProcessService>();
 
 builder.Services.AddSingleton<Network>();
 builder.Services.AddSingleton<INetworkClient>(sp => sp.GetRequiredService<Network>());
@@ -46,6 +53,7 @@ builder.Services.AddHostedService<RovCommandProcessor>();
 builder.Services.AddHostedService<SDL2PoolService>(); // Background Service that Collects Controller Input and Enqueue it
 builder.Services.AddHostedService<DataProviderService>();
 builder.Services.AddHostedService<WebSocketBackgroundService>();
+builder.Services.AddHostedService<ZmqCommunicationService>();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -53,7 +61,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
 
 // Add WebSocket handling to the middleware
 app.UseWebSockets();  // Enable WebSockets in the app

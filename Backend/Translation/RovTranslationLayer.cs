@@ -1,69 +1,71 @@
 
+using Backend.Infrastructure.Interface;
+
 namespace Backend.Translation
 {
-    public class RovTranslationLayer
+    public class RovTranslationLayer : IRovTranslationLayer
     {
-        public List<object> Translate(Dictionary<string, object> rovState)
+        public List<object> Translate(Dictionary<string, object> rovCommand)
         {
             var commands = new List<object>();
 
             // Check for each possible input and call the correct method
-            if (rovState.TryGetValue("rov_axis", out var axisObj) && axisObj is int[] rov_axis)
+            if (rovCommand.TryGetValue("rov_axis", out var axisObj) && axisObj is int[] rov_axis)
                 commands.Add(BuildRovPacket(rov_axis));
 
-            if (rovState.TryGetValue("mani_dpad", out var maniDpadObj) && maniDpadObj is int[] mani_dpad
-                && rovState.TryGetValue("mani_joystick", out var maniJoystickObj) && maniJoystickObj is int[] mani_joystick)
+            if (rovCommand.TryGetValue("mani_dpad", out var maniDpadObj) && maniDpadObj is int[] mani_dpad
+                && rovCommand.TryGetValue("mani_joystick", out var maniJoystickObj) && maniJoystickObj is int[] mani_joystick)
                 commands.Add(BuildManiPacket(mani_dpad, mani_joystick));
 
-            if (rovState.TryGetValue("autonom_data", out var autoObj) && autoObj is int[] autonom_data)
+            if (rovCommand.TryGetValue("autonom_data", out var autoObj) && autoObj is int[] autonom_data)
                 commands.Add(BuildAutonomPacket(autonom_data));
 
-            if (rovState.TryGetValue("Controls_Reset", out var controlsObj) && controlsObj is int[] controlsReset)
+            if (rovCommand.TryGetValue("Controls_Reset", out var controlsObj) && controlsObj is int[] controlsReset)
                 commands.Add(BuildControlsResetPacket(controlsReset));
 
-            if (rovState.TryGetValue("Thruster_Controls_Reset", out var thrusterObj) && thrusterObj is int[] thrusterReset)
+            if (rovCommand.TryGetValue("Thruster_Controls_Reset", out var thrusterObj) && thrusterObj is int[] thrusterReset)
                 commands.Add(BuildThrusterControlsResetPacket(thrusterReset));
 
-            if (rovState.TryGetValue("Manipulator_Controls_Reset", out var manipulatorObj) && manipulatorObj is int[] manipulatorReset)
+            if (rovCommand.TryGetValue("Manipulator_Controls_Reset", out var manipulatorObj) && manipulatorObj is int[] manipulatorReset)
                 commands.Add(BuildManipulatorControlsResetPacket(manipulatorReset));
 
-            if (rovState.TryGetValue("Depth_Reset", out var depthObj) && depthObj is int[] depthReset)
+            if (rovCommand.TryGetValue("Depth_Reset", out var depthObj) && depthObj is int[] depthReset)
                 commands.Add(BuildDepthResetPacket(depthReset));
 
-            if (rovState.TryGetValue("Angles_Reset", out var anglesObj) && anglesObj is int[] anglesReset)
+            if (rovCommand.TryGetValue("Angles_Reset", out var anglesObj) && anglesObj is int[] anglesReset)
                 commands.Add(BuildAnglesResetPacket(anglesReset));
 
-            if (rovState.TryGetValue("IMU_Calibrate", out var imuObj) && imuObj is int[] imuCalibrate)
+            if (rovCommand.TryGetValue("IMU_Calibrate", out var imuObj) && imuObj is int[] imuCalibrate)
                 commands.Add(BuildIMUCalibratePacket(imuCalibrate));
 
-            if (rovState.TryGetValue("Regulator_Tuning", out var regulatorObj) && regulatorObj is int[] regulatorTuning)
+            if (rovCommand.TryGetValue("Regulator_Tuning", out var regulatorObj) && regulatorObj is int[] regulatorTuning)
                 commands.Add(BuildRegulatorTuningPacket(regulatorTuning));
 
-            if (rovState.TryGetValue("Toggle_All_Regulator", out var toggleAllObj) && toggleAllObj is int[] toggleAll)
+            if (rovCommand.TryGetValue("Toggle_All_Regulator", out var toggleAllObj) && toggleAllObj is int[] toggleAll)
                 commands.Add(BuildToggleAllRegulatorPacket(toggleAll));
 
-            if (rovState.TryGetValue("Toggle_Roll_Regulator", out var toggleRollObj) && toggleRollObj is int[] toggleRoll)
+            if (rovCommand.TryGetValue("Toggle_Roll_Regulator", out var toggleRollObj) && toggleRollObj is int[] toggleRoll)
                 commands.Add(BuildToggleRollRegulatorPacket(toggleRoll));
 
-            if (rovState.TryGetValue("Toggle_Stamp_Regulator", out var toggleStampObj) && toggleStampObj is int[] toggleStamp)
+            if (rovCommand.TryGetValue("Toggle_Stamp_Regulator", out var toggleStampObj) && toggleStampObj is int[] toggleStamp)
                 commands.Add(BuildToggleStampRegulatorPacket(toggleStamp));
 
-            if (rovState.TryGetValue("Toggle_Depth_Regulator", out var toggleDepthObj) && toggleDepthObj is int[] toggleDepth)
+            if (rovCommand.TryGetValue("Toggle_Depth_Regulator", out var toggleDepthObj) && toggleDepthObj is int[] toggleDepth)
                 commands.Add(BuildToggleDepthRegulatorPacket(toggleDepth));
 
-            if (rovState.TryGetValue("Front_Light_On", out var frontLightObj) && frontLightObj is int[] frontLight)
+            if (rovCommand.TryGetValue("Front_Light_On", out var frontLightObj) && frontLightObj is int[] frontLight)
                 commands.Add(BuildFrontLightPacket(frontLight));
 
-            if (rovState.TryGetValue("Bottom_Light_On", out var bottomLightObj) && bottomLightObj is int[] bottomLight)
+            if (rovCommand.TryGetValue("Bottom_Light_On", out var bottomLightObj) && bottomLightObj is int[] bottomLight)
                 commands.Add(BuildBottomLightPacket(bottomLight));
 
-            if (rovState.TryGetValue("Front_Light_Slider", out var frontLightSliderObj) && frontLightSliderObj is int[] frontLightSlider)
+            if (rovCommand.TryGetValue("Front_Light_Slider", out var frontLightSliderObj) && frontLightSliderObj is int[] frontLightSlider)
                 commands.Add(BuildFrontLightIntensityPacket(frontLightSlider));
 
-            if (rovState.TryGetValue("Bottom_Light_Slider", out var bottomLightSliderObj) && bottomLightSliderObj is int[] bottomLightSlider)
+            if (rovCommand.TryGetValue("Bottom_Light_Slider", out var bottomLightSliderObj) && bottomLightSliderObj is int[] bottomLightSlider)
                 commands.Add(BuildBottomLightIntensityPacket(bottomLightSlider));
 
-            if (rovState.TryGetValue("tilt", out var tiltObj) && tiltObj is int[] tiltData)
+            if (rovCommand.TryGetValue("tilt", out var tiltObj) && tiltObj is int[] tiltData)
                 commands.Add(BuildCameraTiltPacket(tiltData));
 
             return commands;

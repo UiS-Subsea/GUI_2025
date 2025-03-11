@@ -11,9 +11,7 @@ namespace Backend.Infrastructure
         // Stores connected clients using a thread-safe dictionary.
         // The dictionary key is the WebSocket instance, and the value is a placeholder byte (not used).
         private readonly ConcurrentDictionary<WebSocket, byte> _connectedClients = new();
-
-        // HTTP listener to accept WebSocket requests
-        private readonly HttpListener _httpListener;
+        private readonly HttpListener _httpListener; // HTTP listener to accept WebSocket requests
         private readonly int _port;
         private readonly ILogger<WebSocketServer> _logger;
 
@@ -28,21 +26,7 @@ namespace Backend.Infrastructure
             _logger = logger;
 
             // WebSocket connections will be accepted at ws://localhost:{port}/ws/
-            //_httpListener.Prefixes.Add($"http://localhost:{_port}/ws/");
-            // Check if we are running in Docker by inspecting the environment variable or file
-            bool isInDocker = Environment.GetEnvironmentVariable("DOCKER_ENV") == "1" ||
-                            (File.Exists("/proc/1/cgroup") && File.ReadAllText("/proc/1/cgroup").Contains("docker"));
-
-            if (isInDocker)
-            {
-                // Running inside Docker, use 'backend' as hostname
-                _httpListener.Prefixes.Add($"http://*:{_port}/ws/");
-            }
-            else
-            {
-                // Running outside Docker, use 'localhost'
-                _httpListener.Prefixes.Add($"http://localhost:{_port}/ws/");
-            }
+            _httpListener.Prefixes.Add($"http://localhost:{_port}/ws/");
         }
 
         /// <summary>
@@ -58,16 +42,16 @@ namespace Backend.Infrastructure
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    // Wait for either a new connection or cancellation
+                    // Wait for either a new connection or cancellation.
                     var contextTask = _httpListener.GetContextAsync();
                     var timeoutTask = Task.Delay(Timeout.Infinite, cancellationToken); // Wait indefinitely for cancellation
                     var completedTask = await Task.WhenAny(contextTask, timeoutTask); // Wait for either of them to complete
 
                     if (completedTask == contextTask)
                     {
-                        var context = await contextTask; // The incoming WebSocket request
+                        var context = await contextTask; // The incoming WebSocket request.
 
-                        if (context.Request.IsWebSocketRequest)
+                        if (context.Request.IsWebSocketRequest) // Checks if it is a Websocket request.
                         {
                             var wsContext = await context.AcceptWebSocketAsync(null);
                             var webSocket = wsContext.WebSocket;
@@ -95,6 +79,7 @@ namespace Backend.Infrastructure
             }
             catch (Exception ex) when (cancellationToken.IsCancellationRequested)
             {
+                _logger.LogError("WebSocket Server Error:" + ex.Message, ex);
                 _logger.LogInformation("WebSocket Server shutting down...");
             }
             finally
