@@ -1,6 +1,7 @@
 
 
 using Backend.Infrastructure;
+using Backend.Logging;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System;
@@ -13,10 +14,12 @@ namespace Backend.Domain.API
     public class RovController : ControllerBase
     {
         private readonly CommandQueueService<Dictionary<string, object>> _commandQueueService;
+        private readonly LoggerService _loggerService;
 
-        public RovController(CommandQueueService<Dictionary<string, object>> commandQueueService)
+        public RovController(CommandQueueService<Dictionary<string, object>> commandQueueService, LoggerService loggerService)
         {
             _commandQueueService = commandQueueService;
+            _loggerService = loggerService;
         }
 
         [HttpPost("Front_Light_On")]
@@ -41,7 +44,12 @@ namespace Backend.Domain.API
             }
 
             Console.WriteLine($"Front light command ({lightCommand.Value}) sent successfully.");
-            return Ok("Front light command sent successfully.");
+            // return Ok("Front light command sent successfully.");
+
+            string status = lightCommand.Value == 2 ? "ON" : "OFF";
+            _loggerService.LogInfo($"Front light turned {status}.");
+
+            return Ok($"Front light turned {status}.");
         }
         
 
@@ -67,7 +75,38 @@ namespace Backend.Domain.API
             }
 
             Console.WriteLine($"Bottom light command ({lightCommand.Value}) sent successfully.");
-            return Ok("Bottom light command sent successfully.");
+            // return Ok("Bottom light command sent successfully.");
+
+             string status = lightCommand.Value == 2 ? "ON" : "OFF";
+            _loggerService.LogInfo($"Bottom light turned {status}.");
+
+            return Ok($"Bottom light turned {status}.");
+        }
+
+    
+        [HttpPost("DriveMode")]
+        public async Task<IActionResult> ChangeDriveMode([FromBody] DriveModeCommand driveModeCommand)
+        {
+            if (driveModeCommand == null || string.IsNullOrEmpty(driveModeCommand.Mode))
+            {
+                Console.WriteLine("Invalid drive mode command.");
+                return BadRequest("Invalid drive mode command.");
+            }
+
+            var command = new Dictionary<string, object>
+            {
+                { "DriveMode", driveModeCommand.Mode }
+            };
+
+            var enqueued = await _commandQueueService.EnqueueAsync(command);
+            if (!enqueued)
+            {
+                Console.WriteLine("Failed to enqueue drive mode command.");
+                return StatusCode(500, "Failed to enqueue drive mode command.");
+            }
+
+            Console.WriteLine($"Drive mode changed to {driveModeCommand.Mode} successfully.");
+            return Ok($"Drive mode changed to {driveModeCommand.Mode} successfully.");
         }
     }
 
@@ -75,4 +114,10 @@ namespace Backend.Domain.API
     {
         public int Value { get; set; }
     }
+
+    public class DriveModeCommand
+    {
+        public string Mode { get; set; }
+    }
+
 }
