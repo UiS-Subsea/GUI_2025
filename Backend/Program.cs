@@ -4,6 +4,7 @@ using Backend.Domain.ROV_Sender;
 using Backend.Infrastructure;
 using Backend.Infrastructure.Interface;
 using Backend.Translation;
+using Backend.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +36,7 @@ builder.Services.AddSingleton<CommandQueueService<Dictionary<string, object>>>()
 builder.Services.AddSingleton<WebSocketServer>(); // Singleton WebSocket server to handle connections
 builder.Services.AddSingleton<GUITranslationLayer>();
 builder.Services.AddSingleton<RovTranslationLayer>();
+builder.Services.AddSingleton<LoggerService>();  //Logging
 
 builder.Services.AddSingleton<Network>();
 builder.Services.AddSingleton<INetworkClient>(sp => sp.GetRequiredService<Network>());
@@ -42,9 +44,9 @@ builder.Services.AddSingleton<INetworkServer>(sp => sp.GetRequiredService<Networ
 
 
 // Background Service that Dequeue Commands, Translate it, And Send it to ROV.
-builder.Services.AddHostedService<RovCommandProcessor>();
+// builder.Services.AddHostedService<RovCommandProcessor>();  //kommenter ut(testing husk å fjern kommentar)
 builder.Services.AddHostedService<SDL2PoolService>(); // Background Service that Collects Controller Input and Enqueue it
-builder.Services.AddHostedService<DataProviderService>();
+// builder.Services.AddHostedService<DataProviderService>();  //kommenter ut(testing husk å fjern kommentar)
 builder.Services.AddHostedService<WebSocketBackgroundService>();
 
 // Add services to the container.
