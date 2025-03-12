@@ -33,21 +33,24 @@ class CommunicationHandler:
                 if isinstance(data, dict) and "autonomdata" in data:
                     payload = data["autonomdata"]
                     if isinstance(payload, list) and len(payload) >= 4:
-                        formatted_data = {"autonom_data": payload[:4]}
+                        # Convert each element to an integer after rounding
+                        formatted_data = {
+                            "autonom_data": [int(round(value)) for value in payload[:4]]
+                        }
                         message = json.dumps(formatted_data)
+                        try:
+                            self.push_socket.send_string(message)
+                            print(f"[NETWORK] Sent ROV data: {message}")
+                        except zmq.ZMQError as e:
+                            print(f"[NETWORK] Failed to send ROV data: {e}")
                     else:
-                        message = json.dumps({"error": "Invalid payload format"})
+                        print(f"[ERROR] Invalid payload format: {payload}")
                 else:
-                    message = json.dumps({"error": "Unexpected data structure"})
-
-                try:
-                    self.push_socket.send_string(message)
-                    print(f"[NETWORK] Sent ROV data: {message}")
-                except zmq.ZMQError as e:
-                    print(f"[NETWORK] Failed to send ROV data: {e}")
+                    print(f"[ERROR] Unexpected data structure: {data}")
 
 
     def stop(self):
         """Stops network operations and closes sockets."""
         self.push_socket.close()
         self.context.term()
+

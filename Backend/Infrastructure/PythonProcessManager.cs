@@ -6,6 +6,8 @@ namespace Backend.Infrastructure
     {
         private Process _pythonProcess = null!;
         private readonly string _pythonExe = "python";  // Or "python3"
+        //private readonly string _pythonExe = @"C:\Users\Azazel\AppData\Local\Programs\Python\Python37\python.exe";
+
         private readonly string _pythonScriptPath;
 
         public PythonProcessManager()

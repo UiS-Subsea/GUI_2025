@@ -19,7 +19,7 @@ namespace Backend.Infrastructure
         /// Initializes a new WebSocket server instance on the specified port.
         /// </summary>
         /// <param name="port">The port on which the server should listen for WebSocket connections.</param>
-        public WebSocketServer(ILogger<WebSocketServer> logger, int port = 5000)
+        public WebSocketServer(ILogger<WebSocketServer> logger, int port = 5009)
         {
             _port = port;
             _httpListener = new HttpListener();

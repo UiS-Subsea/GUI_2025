@@ -42,7 +42,6 @@ class Camera:
             return True
         else:
             self.cam = cv2.VideoCapture(self.gst, cv2.CAP_GSTREAMER)
-            print(cv2.getBuildInformation())
             if not self.isOpened:
                 print("Error opening camera")
                 return False
@@ -230,7 +229,7 @@ class CameraManager:
 class ExecutionClass:
     def __init__(
             self,
-            driving_queue,
+            rov_data_queue,
             stereo_left_queue: multiprocessing.Queue,
             stereo_right_queue: multiprocessing.Queue,
             down_queue: multiprocessing.Queue,
@@ -244,7 +243,7 @@ class ExecutionClass:
         self.counter = 0
         self.done = False
         self.manual_flag = manual_flag
-        self.driving_queue = driving_queue
+        self.rov_data_queue = rov_data_queue
         self.stereo_left_queue = stereo_left_queue
         self.stereo_right_queue = stereo_right_queue
         self.down_queue = down_queue
@@ -277,7 +276,7 @@ class ExecutionClass:
         elif name == "Down":
             self.down_queue.put(frame)
         elif name == "Driving":
-            self.driving_queue.put(frame)
+            self.manipulator_queue.put(frame)
         else:
             print(f"Unknown name '{name}', frame not added to any queue.")
 
@@ -346,8 +345,8 @@ class ExecutionClass:
             docking_frame, frame_under, driving_data_packet = self.Docking.run(
                 self.frame_stereoL, self.frame_stereoR
             )  # TODO should be down camera
-            self.show(docking_frame, "Docking")
-            self.show(frame_under, "Frame Under")
+            self.show(docking_frame, "StereoL")
+            self.show(frame_under, "Down")
             self.send_data_to_rov(driving_data_packet)
             # self.show(frame_under, "Frame Under")
         else:
@@ -355,7 +354,7 @@ class ExecutionClass:
 
     def send_data_to_rov(self, datapacket):
         data_to_send = {"autonomdata": datapacket}
-        self.driving_queue.put(data_to_send)
+        self.rov_data_queue.put(data_to_send)
 
     def normal_camera(self):
         self.done = False

@@ -135,7 +135,9 @@ class AutonomousDocking:
             area = width * height
             
             # These max values depend on how far away the ROV is from the bottom
-            frame_height, frame_width = self.frame.shape
+            #frame_height, frame_width = self.frame.shape    <----old that dose not work
+            frame_height, frame_width = self.frame.shape[:2]
+
             
             MAX_AREA = (frame_height * frame_width) * 0.30
             MIN_AREA = (frame_height * frame_width) * 0.05
