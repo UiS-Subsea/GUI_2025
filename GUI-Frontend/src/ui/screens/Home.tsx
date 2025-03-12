@@ -11,7 +11,7 @@ export const Home: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void }>
       <div className=' flex w-full top-1 pt-2 px-2 '>
         <NavBar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
       </div>
-      <div className=' flex w-full h-full overflow-auto'>
+      <div className=' flex w-full h-full overflow-auto pb-6'>
         <DashboardGrid />
       </div>
     </div>

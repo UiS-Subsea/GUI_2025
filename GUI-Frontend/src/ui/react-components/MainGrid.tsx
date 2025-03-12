@@ -12,6 +12,7 @@ import { DriveMode } from './grid-items/DriveMode';
 import { LightSettings } from './grid-items/LightSettings';
 import { Angles } from './grid-items/Angles';
 import { Manipulator } from './grid-items/Manipulator';
+import { Coordinates } from './grid-items/Coordinates';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 export const DashboardGrid = () => {
@@ -19,13 +20,14 @@ export const DashboardGrid = () => {
     lg: [
       { i: 'cameraFunctions', x: 0, y: 0, w: 2, h: 2 },
       { i: 'lightSettings', x: 0, y: 2, w: 2, h: 2 },
-      { i: 'driveMode', x: 0, y: 5, w: 1, h: 4 },
-      { i: 'angles', x: 1, y: 5, w: 1, h: 4 },
-      { i: 'temperature', x: 2, y: 5, w: 4, h: 3 },
+      { i: 'driveMode', x: 0, y: 5, w: 1, h: 4.5 },
+      { i: 'angles', x: 1, y: 5, w: 1, h: 4.5 },
+      { i: 'temperature', x: 2, y: 5, w: 2, h: 3.5 },
+      { i: 'coordinates', x: 6, y: 4, w: 2, h: 4.5 },
       { i: 'cameraFeed', x: 2, y: 0, w: 4, h: 5 },
       { i: 'sensors', x: 6, y: 0, w: 1, h: 4 },
       { i: 'battery', x: 7, y: 0, w: 1, h: 4 },
-      { i: 'manipulatorConnection', x: 6, y: 4, w: 2, h: 4 },
+      { i: 'manipulatorConnection', x: 4, y: 5, w: 2, h: 3.5 },
     ],
     sm: [
       { i: 'cameraFunctions', x: 0, y: 0, w: 2, h: 3 },
@@ -37,6 +39,7 @@ export const DashboardGrid = () => {
       { i: 'sensors', x: 6, y: 0, w: 2, h: 3 },
       { i: 'battery', x: 6, y: 4, w: 2, h: 2 },
       { i: 'manipulatorConnection', x: 6, y: 5, w: 2, h: 3 },
+      { i: 'coordinates', x: 2, y: 9, w: 4, h: 4 },
     ],
   };
 
@@ -96,6 +99,12 @@ export const DashboardGrid = () => {
           className=' drag-Handle flex justify-center dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
         >
           <Temperature />
+        </div>
+        <div
+          key='coordinates'
+          className=' drag-Handle flex justify-center dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+        >
+          <Coordinates />
         </div>
         <div
           key='cameraFeed'

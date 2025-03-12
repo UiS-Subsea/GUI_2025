@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { app, BrowserWindow, Menu } from 'electron';
 import path from 'path';
 
@@ -15,7 +16,7 @@ let appWindow: BrowserWindow;
  */
 export function createAppWindow(): BrowserWindow {
   const minWidth = 960;
-  const minHeight = 660;
+  const minHeight = 1000;
 
   const savedWindowState = windowStateKeeper({
     defaultWidth: minWidth,

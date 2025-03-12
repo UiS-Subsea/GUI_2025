@@ -6,6 +6,7 @@ using Backend.Domain.ROV_Sender;
 using Backend.Infrastructure;
 using Backend.Infrastructure.Interface;
 using Backend.Translation;
+using Backend.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,8 +38,10 @@ builder.Services.AddSingleton<ICommandQueueService<Dictionary<string, object>>, 
 builder.Services.AddSingleton<IROVController, RovController>();
 builder.Services.AddSingleton<IManiController, ManiController>();
 builder.Services.AddSingleton<WebSocketServer>(); // Singleton WebSocket server to handle connections
+
 builder.Services.AddSingleton<IGUITranslationLayer, GUITranslationLayer>();
 builder.Services.AddSingleton<IRovTranslationLayer, RovTranslationLayer>();
+builder.Services.AddSingleton<LoggerService>();  //Logging
 
 builder.Services.AddSingleton<PythonProcessManager>();
 builder.Services.AddHostedService<PythonProcessService>();
@@ -49,9 +52,9 @@ builder.Services.AddSingleton<INetworkServer>(sp => sp.GetRequiredService<Networ
 
 
 // Background Service that Dequeue Commands, Translate it, And Send it to ROV.
-builder.Services.AddHostedService<RovCommandProcessor>();
+// builder.Services.AddHostedService<RovCommandProcessor>();  //kommenter ut(testing husk å fjern kommentar)
 builder.Services.AddHostedService<SDL2PoolService>(); // Background Service that Collects Controller Input and Enqueue it
-builder.Services.AddHostedService<DataProviderService>();
+// builder.Services.AddHostedService<DataProviderService>();  //kommenter ut(testing husk å fjern kommentar)
 builder.Services.AddHostedService<WebSocketBackgroundService>();
 builder.Services.AddHostedService<ZmqCommunicationService>();
 
