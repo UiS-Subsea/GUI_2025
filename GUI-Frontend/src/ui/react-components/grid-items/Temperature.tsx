@@ -31,31 +31,46 @@ export const Temperature = () => {
         <div className='absolute top-2 left-4 lg:text-[25px] text-[18px]'>Temperature</div>
         <div style={{ position: 'relative', width: '100%', textAlign: 'center' }}>
           <img src='./assets/images/rov.png' alt='ROV' style={{ width: 350, height: 'auto', display: 'block' }} />
-          {temperatureData.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                position: 'absolute',
-                top: item.y,
-                left: item.x,
-                transform: 'translate(-50%, -50%)',
-                background: 'rgba(0, 0, 0, 0.5)',
-                color: 'white',
-                padding: '5px 10px',
-                borderRadius: '10px',
-                border: '2px solid #4bd5ff',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                textAlign: 'center',
-                minWidth: '30px',
-                textDecorationColor: 'white',
-                WebkitTextDecorationColor: 'black',
-                textShadow: '2px 2px 2px black',
-              }}
-            >
-              {item.id}
-            </div>
-          ))}
+          {temperatureData.map((item, index) => {
+            // Convert to number (handle null/undefined just in case)
+            const tempValue = Number(item.id);
+            let borderColor = '#4bd5ff'; // default (blue)
+
+            // changing bordercolors when temp is reaching certain limtis
+            if (!isNaN(tempValue)) {
+              if (tempValue >= 80) {
+                borderColor = 'red';
+              } else if (tempValue >= 60) {
+                borderColor = 'orange';
+              }
+            }
+
+            return (
+              <div
+                key={index}
+                style={{
+                  position: 'absolute',
+                  top: item.y,
+                  left: item.x,
+                  transform: 'translate(-50%, -50%)',
+                  background: 'rgba(0, 0, 0, 0.5)',
+                  color: 'white',
+                  padding: '5px 10px',
+                  borderRadius: '10px',
+                  border: `2px solid ${borderColor}`,
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  minWidth: '30px',
+                  textDecorationColor: 'white',
+                  WebkitTextDecorationColor: 'black',
+                  textShadow: '2px 2px 2px black',
+                }}
+              >
+                {tempValue}
+              </div>
+            );
+          })}
         </div>
       </div>
     </>
