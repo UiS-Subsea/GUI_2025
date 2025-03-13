@@ -1,19 +1,28 @@
 import React from 'react';
+// eslint-disable-next-line import/no-unresolved
+import { useSensorData } from 'WebSocketProvider';
 
 export const Temperature = () => {
+  //fetch data from websocket
+  const temperatureDataBackend = useSensorData();
+  console.log('temp', temperatureDataBackend);
+
   const temperatureData = [
-    { id: 12, x: '10%', y: '20%' }, // vifte venstre oppe
-    { id: 12, x: '10%', y: '60%' }, // vifte venstre nede
-    { id: 16, x: '90%', y: '20%' }, // høyre vifte oppe
-    { id: 19, x: '90%', y: '60%' }, // høyre vifte nede
-    { id: 10, x: '30%', y: '25%' }, // venstre midt oppe
-    { id: 10, x: '72%', y: '25%' }, // høyre midt oppe
-    { id: 10, x: '72%', y: '59%' }, // høyre midt nede
-    { id: 11, x: '30%', y: '59%' }, // venstre midt nede
-    { id: 13, x: '50%', y: '20%' }, // midt øverst
-    { id: 10, x: '50%', y: '32%' }, // midt oppe
-    { id: 11, x: '50%', y: '44%' }, // midt nede
-    { id: 12, x: '50%', y: '56%' }, // midt nederst
+    { id: temperatureDataBackend.THRUSTPAADRAG.VVF, x: '10%', y: '20%' }, // vertikal venstre fram
+    { id: temperatureDataBackend.THRUSTPAADRAG.VVB, x: '10%', y: '60%' }, // vertifal venstre bak
+    { id: temperatureDataBackend.THRUSTPAADRAG.VHF, x: '90%', y: '20%' }, // vertikal høyre fram
+    { id: temperatureDataBackend.THRUSTPAADRAG.VHB, x: '90%', y: '60%' }, // vertikal høyre bak
+    { id: temperatureDataBackend.THRUSTPAADRAG.HVF, x: '30%', y: '25%' }, // horisontal venstre fram
+    { id: temperatureDataBackend.THRUSTPAADRAG.HFF, x: '72%', y: '25%' }, // horisontal høyre fram
+    { id: temperatureDataBackend.THRUSTPAADRAG.HHB, x: '72%', y: '59%' }, // horisontal høyre bak
+    { id: temperatureDataBackend.THRUSTPAADRAG.HVB, x: '30%', y: '59%' }, // horisontal venstre bak
+    { id: temperatureDataBackend.COMTEMP.Com_temp, x: '50%', y: '15%' }, // Com temp
+    { id: temperatureDataBackend.REGTEMP.REG_temp, x: '50%', y: '27%' }, // Regulator temp
+    { id: temperatureDataBackend.REGTEMP.Motor_temp, x: '50%', y: '39%' }, // Motor temp
+    { id: temperatureDataBackend.TEMPDYBDE.Sensor_temp, x: '50%', y: '51%' }, // sensor temp
+    { id: temperatureDataBackend.DATA12VRIGHT.Temp, x: '50%', y: '63%' }, // 12V right kort temp
+    { id: temperatureDataBackend.DATA12VLEFT.Temp, x: '50%', y: '75%' }, // 12V left kort temp
+    { id: temperatureDataBackend.DATA5V.Power_temp, x: '50%', y: '87%' }, // 5V power temp
   ];
 
   return (

@@ -1,3 +1,4 @@
+import exp from 'node:constants';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 // Create a WebSocket context to share the sensor data with components
@@ -202,3 +203,21 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
 // Custom hook to get the full sensor data object
 export const useSensorData = () => useContext(WebSocketContext).sensorData;
+
+export const batteryDataRight = () => useContext(WebSocketContext).sensorData.DATA12VRIGHT;
+
+export const batteryDataLeft = () => useContext(WebSocketContext).sensorData.DATA12VLEFT;
+
+export const thrustpaadrag = () => useContext(WebSocketContext).sensorData.THRUSTPAADRAG;
+
+export const regtemp = () => useContext(WebSocketContext).sensorData.REGTEMP;
+
+export const vinkler = () => useContext(WebSocketContext).sensorData.VINKLER;
+
+export const tempdybde = () => useContext(WebSocketContext).sensorData.TEMPDYBDE;
+
+export const sensorerror = () => useContext(WebSocketContext).sensorData.SENSORERROR;
+
+export const comtemp = () => useContext(WebSocketContext).sensorData.COMTEMP;
+
+export const data5v = () => useContext(WebSocketContext).sensorData.DATA5V;

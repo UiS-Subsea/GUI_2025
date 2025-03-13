@@ -1,12 +1,10 @@
 import React from 'react';
 import Switch from 'react-switch';
+// eslint-disable-next-line import/no-unresolved
+import { vinkler } from 'WebSocketProvider';
 
 export const Angles = () => {
-  const data = {
-    roll: 1.72,
-    pitch: 2.23,
-    yaw: 3.34,
-  };
+  const vinklerData = vinkler();
 
   const [transduserOn, setTransduserOn] = React.useState(false);
   const handleTransduser = () => setTransduserOn(!transduserOn);
@@ -28,15 +26,15 @@ export const Angles = () => {
           <div className='lg:flex-col flex-row gap-4'>
             <div className=' text-[15px] w-full gap-7 flex-row flex lg:text-[20px]'>
               <p className='max-w-[120px] h-full w-full lg:max-h-[70px]'>Roll </p>
-              <p className='dark:text-[#4bd5ff] text-whites'>{data.pitch}</p>
+              <p className='dark:text-[#4bd5ff] text-whites'>{vinklerData.Roll}</p>
             </div>
             <div className=' text-[15px] w-full gap-7 flex-row flex lg:text-[20px]'>
               <p className='  max-w-[120px] h-full w-full lg:max-h-[70px]'>Pitch </p>
-              <p className='dark:text-[#4bd5ff] text-whites lg:text-[20px]'>{data.roll}</p>
+              <p className='dark:text-[#4bd5ff] text-whites lg:text-[20px]'>{vinklerData.Stamp}</p>
             </div>
             <div className=' text-[15px] w-full gap-8 flex-row flex lg:text-[20px]'>
               <p className='max-w-[120px] h-full w-full lg:max-h-[70px]'>Yaw </p>
-              <p className='dark:text-[#4bd5ff] text-whites'>{data.yaw}</p>
+              <p className='dark:text-[#4bd5ff] text-whites'>{vinklerData.Gir}</p>
             </div>
           </div>
         </div>

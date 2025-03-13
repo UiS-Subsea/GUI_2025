@@ -24,7 +24,7 @@ export const NavBar: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void 
         ROV DASHBOARD
       </div>
       <div className='max-w-[300px] w-full h-full'>
-        <NavigateButton text='ROV DATA' route='/data' />
+        <NavigateButton text='ROV LOGGER' route='/data' />
       </div>
       <div className=' min-w-[90px] w-[110px] h-full'>
         <NavigateButton
