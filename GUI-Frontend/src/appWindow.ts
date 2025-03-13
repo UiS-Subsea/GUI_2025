@@ -33,7 +33,7 @@ export function createAppWindow(): BrowserWindow {
     minHeight: minHeight,
     show: false,
     autoHideMenuBar: true,
-    frame: false,
+    frame: true,
     backgroundColor: '#1a1a1a',
     webPreferences: {
       nodeIntegration: false,
