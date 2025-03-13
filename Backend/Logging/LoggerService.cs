@@ -51,19 +51,37 @@ namespace Backend.Logging
         }
 
 
-        // Check if there is a log folder(creates if not) and saves the log file there
+        // // Check if there is a log folder(creates if not) and saves the log file there
+
         public void LogInfo(string message)
         {
             if (!Directory.Exists(_logFolder))
+            {
                 Directory.CreateDirectory(_logFolder);
+            }
 
             string logFile = Path.Combine(_logFolder, $"{DateTime.Now:yyyy-MM-dd}.log");
-            string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} INFO: {message}{Environment.NewLine}";
+            string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} INFO: {message}";
 
-            File.AppendAllText(logFile, logEntry);
-            Console.WriteLine($"LOG: {logEntry}");
-            _dataLogger.LogInformation(logEntry);
+            try
+            {
+    
+
+                //Use File.AppendAllLines to prevent corruption
+                lock (this)  // Ensures thread-safe writes
+                {
+                    File.AppendAllLines(logFile, new[] { logEntry });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR WRITING TO LOG FILE: {ex.Message}");
+            }
+
+            _dataLogger.LogInformation(logEntry); // Internal logging
         }
+
 
     }
 }
