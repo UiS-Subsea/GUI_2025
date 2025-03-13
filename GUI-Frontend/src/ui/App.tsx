@@ -15,6 +15,7 @@ import 'react-resizable/css/styles.css';
 import Settings from './screens/Settings';
 import Data from './screens/Data';
 import { WebSocketProvider } from '../../WebSocketProvider'; // Import the WebSocketProvider
+import SensorErrorPopup from './react-components/SensorErrorPopup';
 
 const onMenuEvent = (_: Electron.IpcRendererEvent, channel: string, ...args: any[]) => {
   electron.ipcRenderer.invoke(channel, args);
@@ -51,6 +52,7 @@ export default function App() {
     <div className='w-screen h-screen'>
       <Router>
         <WebSocketProvider>
+          <SensorErrorPopup />
           <Titlebar>
             {(windowState) => (
               <>
