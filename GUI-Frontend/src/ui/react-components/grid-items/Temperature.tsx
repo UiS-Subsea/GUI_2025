@@ -38,9 +38,9 @@ export const Temperature = () => {
 
             // changing bordercolors when temp is reaching certain limtis
             if (!isNaN(tempValue)) {
-              if (tempValue >= 80) {
+              if (tempValue >= 30) {
                 borderColor = 'red';
-              } else if (tempValue >= 60) {
+              } else if (tempValue >= 20) {
                 borderColor = 'orange';
               }
             }
