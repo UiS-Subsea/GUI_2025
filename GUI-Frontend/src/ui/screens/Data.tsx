@@ -11,11 +11,12 @@ export const Data: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void }>
   const fetchLogs = async (filter: string) => {
     try {
       const response = await fetch(`http://localhost:5017/api/logs?filter=${filter}`);
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      const data = await response.json(); // Ensure we parse JSON correctly
-      console.log('Fetched Logs:', data.logs);
+
+      const data = await response.json();
 
       setLogs(data.logs || 'No logs available.');
     } catch (error) {
@@ -26,7 +27,7 @@ export const Data: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void }>
 
   useEffect(() => {
     fetchLogs(selectedFilter);
-    const interval = setInterval(() => fetchLogs(selectedFilter), 3000);
+    const interval = setInterval(() => fetchLogs(selectedFilter), 2000); // Update every 2s
     return () => clearInterval(interval);
   }, [selectedFilter]);
 
@@ -155,11 +156,12 @@ export const Data: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void }>
           </h2>
 
           <pre
-            className={`p-3 font-silkscreen text-[15px] lg:text-[18px] rounded overflow-auto max-h-96 whitespace-pre-wrap transition-all duration-300 flex justify-center items-center ${
+            className={`p-3 font-silkscreen text-[15px] lg:text-[18px] rounded overflow-auto max-h-96 whitespace-pre-wrap transition-all duration-300 flex justify-start items-start ${
               isDarkMode ? 'bg-[#232323] text-white' : 'bg-gray-100 text-black'
             }`}
+            style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxHeight: '500px', overflowY: 'auto' }}
           >
-            {logs || 'No logs available'}
+            {logs}
           </pre>
         </div>
       </div>
