@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 interface ButtonProps {
@@ -8,6 +8,13 @@ interface ButtonProps {
 }
 
 export const Button: React.FC<ButtonProps> = ({ name, action, selected }) => {
+  const [isClicked, setIsClicked] = useState(false);
+
+  const handleClick = () => {
+    setIsClicked(!isClicked);
+    if (action) action(); //i have changed this.
+  };
+
   return (
     <motion.button
       whileHover={{ scale: 1.05 }}

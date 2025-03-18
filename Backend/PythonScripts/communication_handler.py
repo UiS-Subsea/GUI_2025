@@ -39,7 +39,7 @@ class CommunicationHandler:
                         }
                         message = json.dumps(formatted_data)
                         try:
-                            self.push_socket.send_string(message)
+                            #self.push_socket.send_string(message) when testing
                             print(f"[NETWORK] Sent ROV data: {message}")
                         except zmq.ZMQError as e:
                             print(f"[NETWORK] Failed to send ROV data: {e}")

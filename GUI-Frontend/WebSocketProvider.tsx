@@ -113,7 +113,12 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // Function to create and connect the WebSocket.
     const connectWebSocket = () => {
       // Initialize the WebSocket connection
-      socketRef.current = new WebSocket('ws://localhost:5000/ws');
+      socketRef.current = new WebSocket('ws://localhost:5009/ws');
+
+      // WebSocket connection open event handler: Triggered when the connection is established
+      socketRef.current.onopen = () => {
+        console.log('WebSocket connected to ws://localhost:5009/ws'); // Log when the connection is established
+      };
 
       // WebSocket message event handler: Triggered when data is received from the server
       socketRef.current.onmessage = (event) => {

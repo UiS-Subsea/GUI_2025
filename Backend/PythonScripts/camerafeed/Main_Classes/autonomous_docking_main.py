@@ -157,10 +157,10 @@ class AutonomousDocking:
                 box = np.intp(box)
                 cv2.drawContours(self.down_frame, [box], 0, (0, 0, 255), 2)
 
-        avg_angle = angle_sum / angle_counter
-
         if angle_counter == 0:
             return "NO ANGLE"
+
+        avg_angle = angle_sum / angle_counter
         
         return avg_angle
             

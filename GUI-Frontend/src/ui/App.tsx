@@ -15,7 +15,7 @@ import 'react-resizable/css/styles.css';
 import Settings from './screens/Settings';
 import Data from './screens/Data';
 import { WebSocketProvider } from '../../WebSocketProvider'; // Import the WebSocketProvider
-
+import { WebSocketCommandProvider } from '../../WebSocketManager';
 const onMenuEvent = (_: Electron.IpcRendererEvent, channel: string, ...args: any[]) => {
   electron.ipcRenderer.invoke(channel, args);
 };
@@ -51,23 +51,25 @@ export default function App() {
     <div className='w-screen h-screen'>
       <Router>
         <WebSocketProvider>
-          <Titlebar>
-            {(windowState) => (
-              <>
-                {__WIN32__ && (
-                  <>
-                    <Menu />
-                    <WindowControls windowState={windowState} />
-                  </>
-                )}
-              </>
-            )}
-          </Titlebar>
-          <Routes>
-            <Route path='/' element={<Home isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
-            <Route path='/settings' element={<Settings isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
-            <Route path='/data' element={<Data isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
-          </Routes>
+          <WebSocketCommandProvider>
+            <Titlebar>
+              {(windowState) => (
+                <>
+                  {__WIN32__ && (
+                    <>
+                      <Menu />
+                      <WindowControls windowState={windowState} />
+                    </>
+                  )}
+                </>
+              )}
+            </Titlebar>
+            <Routes>
+              <Route path='/' element={<Home isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+              <Route path='/settings' element={<Settings isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+              <Route path='/data' element={<Data isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+            </Routes>
+          </WebSocketCommandProvider>
         </WebSocketProvider>
       </Router>
     </div>

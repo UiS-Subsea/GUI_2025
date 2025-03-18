@@ -54,8 +54,8 @@ class TaskManager:
             "START_CAMERA": self.start_camera,
             "START_TRANSECT": self.start_transect,
             "START_DOCKING": self.start_docking,
-            "START_SEAGRASS": self.start_seagrass,
-            "START_TEST": self.start_test_camera,
+            "START_SEAGRASS": self.start_seagrass, # Not in use.
+            "START_TEST": self.start_test_camera, # Not in use.
             "START_MANUAL": self.start_manual
         }
 
@@ -69,22 +69,22 @@ class TaskManager:
             print("[TASK MANAGER] Stopping current task")
             self.execution.stop_everything()
             self.current_task = None
-            self.mode_flag = 0
+            self.mode_flag.value = 0
             self.manual_flag.value = 1  # Switch to manual mode
 
     def start_camera(self):
         self.stop_all_tasks()
         print("[TASK MANAGER] Starting camera feed")
         self.current_task = "CAMERA"
-        self.mode_flag = 5
-        self.manual_flag.value = 0
+        self.mode_flag.value = 5
+        self.manual_flag.value = 1
         self.start_task_in_thread(self.execution.show_all_cameras)
 
     def start_transect(self):
         self.stop_all_tasks()
         print("[TASK MANAGER] Starting transect mode")
         self.current_task = "TRANSECT"
-        self.mode_flag = 3
+        self.mode_flag.value = 3
         self.manual_flag.value = 0
         self.start_task_in_thread(self.execution.transect)
 
@@ -92,15 +92,15 @@ class TaskManager:
         self.stop_all_tasks()
         print("[TASK MANAGER] Starting docking mode")
         self.current_task = "DOCKING"
-        self.mode_flag = 2
+        self.mode_flag.value = 2
         self.manual_flag.value = 0
         self.start_task_in_thread(self.execution.docking)
 
-    def start_seagrass(self):
+    def start_seagrass(self): # This method is made like the others but is not in use.
         self.stop_all_tasks()
         print("[TASK MANAGER] Starting seagrass monitoring")
         self.current_task = "SEAGRASS"
-        self.mode_flag = 4
+        self.mode_flag.value = 4
         self.manual_flag.value = 0
         self.start_task_in_thread(self.execution.seagrass)
 
@@ -108,16 +108,18 @@ class TaskManager:
         self.stop_all_tasks()
         print("[TASK MANAGER] Running camera test")
         self.current_task = "TEST"
-        self.mode_flag = 5
+        self.mode_flag.value = 5
         self.manual_flag.value = 0
         self.start_task_in_thread(self.execution.camera_test)
 
-    def start_manual(self):
+    def start_manual(self): # might need camera open before(all or some)
         """Switch to manual mode"""
         self.stop_all_tasks()
         print("[TASK MANAGER] Switching to manual mode")
-        self.mode_flag = 1
+        self.current_task = "MANUAL"
+        self.mode_flag.value = 1
         self.manual_flag.value = 1
+        self.start_task_in_thread(self.execution.show_3_cameras)
 
     def start_task_in_thread(self, task_function):
         """Start a task in a separate thread"""

@@ -25,10 +25,10 @@ class WebSocketServer:
                 self.on_message(message)  # Process incoming message
         except websockets.exceptions.ConnectionClosed:
             print("[WEBSOCKET] Frontend disconnected")
-        finally:
-            self.websocket = None  # Reset the websocket reference when disconnected
+        #finally:
+            #self.websocket = None  # Reset the websocket reference when disconnected
             # Trigger reconnection attempt when connection is closed
-            await self.reconnect()
+            #await self.reconnect()
 
     def on_message(self, message):
         """Handles an incoming message from the WebSocket."""

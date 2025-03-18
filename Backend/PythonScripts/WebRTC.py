@@ -1,162 +1,180 @@
 import asyncio
-import json
-import signal
-import websockets
+import time
 import cv2
 from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack
 from av import VideoFrame
-
-# Global peer connection (one-to-one)
-pcs = set()
-
-class ProcessedFrameStream(VideoStreamTrack):
-    """ WebRTC VideoStreamTrack that streams processed frames """
-    def __init__(self, frame_queue, active_flag):
-        super().__init__()
-        self.frame_queue = frame_queue  # This is a specific camera's queue
-        self.active_flag = active_flag  # Controls if this stream is active
-
-    async def recv(self):
-        while True:
-            if not self.active_flag.value:  # Check if stream should be active
-                await asyncio.sleep(0.1) # Pause when inactive
-                continue
-
-            if self.frame_queue.empty():
-                await asyncio.sleep(0.01)
-                continue
-
-            frame = self.frame_queue.get()
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            video_frame = VideoFrame.from_ndarray(frame, format="rgb24")
-            return video_frame
+from aiohttp import web
+import aiohttp_cors
+import multiprocessing
 
 
-async def handle_offer(websocket, frame_queues, active_flags):
-    """ Handles WebRTC signaling """
-    global pcs
-    pc = RTCPeerConnection()
-    pcs.add(pc)
+class WebRTCServer:
+    def __init__(self, frame_queues, mode_value, log_queue):
+        self.frame_queues = frame_queues
+        self.mode_value = mode_value
+        self.log_queue = log_queue
+        self.pcs = set()
+        self.active_flags = [multiprocessing.Value("b", False) for _ in frame_queues]
+        self.server_runner = None
+        self.server_site = None
 
-    try:
-        async for message in websocket:
-            data = json.loads(message)
+    class ProcessedFrameStream(VideoStreamTrack):
+        """ This is the inner class that processes the video frames and streams them """
+        def __init__(self, frame_queue, active_flag, nr):
+            super().__init__()
+            self.frame_queue = frame_queue
+            self.active_flag = active_flag
+            self.nr = nr
 
-            if data["type"] == "offer":
-                print("[WebRTC] Received WebRTC offer")
-
-                # Add all tracks but let them be inactive when needed
-                for queue, flag in zip(frame_queues, active_flags):
-                    track = ProcessedFrameStream(queue, flag)
-                    pc.addTrack(track)
-
-                # Set remote description
-                offer = RTCSessionDescription(sdp=data["sdp"], type=data["type"])
-                await pc.setRemoteDescription(offer)
-
-                # Create answer
-                answer = await pc.createAnswer()
-                await pc.setLocalDescription(answer)
-
-                # Send back answer
-                response = json.dumps({
-                    "sdp": pc.localDescription.sdp,
-                    "type": pc.localDescription.type
-                })
-                await websocket.send(response)
-                print("[WebRTC] Sent WebRTC answer")
-
-    except websockets.exceptions.ConnectionClosed:
-        print("[WebRTC] WebSocket closed")
-    finally:
-        pcs.discard(pc)
-        await pc.close()
-
-async def watch_mode_and_update_streams(mode_value, active_flags):
-    """ Monitors mode and enables/disables streams dynamically """
-    prev_mode = None
-
-    while True:
-        current_mode = mode_value.value
-
-        if current_mode != prev_mode:
-            print(f"[WebRTC] Mode changed to: {current_mode}")
+        async def recv(self):
+            while True:
+                if not self.active_flag.value:
+                    await asyncio.sleep(0.2)
+                    continue
             
-            # Update which streams are active (but keep connections open)
-            if current_mode == 0:  # Disable all streams
-                active_flags[0] = False  # Stereo Left
-                active_flags[1] = False  # Stereo Right
-                active_flags[2] = False  # Down
-                active_flags[3] = False  # Manipulator
-            elif current_mode == 1:  # Manual mode (dont have any in code??)
-                active_flags[0] = True
-                active_flags[1] = True
-                active_flags[2] = True
-                active_flags[3] = False
-            elif current_mode == 2:  # Docking mode (need to check if it should be both stereo)
-                active_flags[0] = True
-                active_flags[1] = True
-                active_flags[2] = False
-                active_flags[3] = False
-            elif current_mode == 3:  # Transect mode
-                active_flags[0] = False
-                active_flags[1] = False
-                active_flags[2] = True
-                active_flags[3] = False
-            elif current_mode == 4:  # SeaGras mode (Doesn't seem to be implemented)
-                active_flags[0] = True
-                active_flags[1] = True
-                active_flags[2] = True
-                active_flags[3] = False
-            elif current_mode == 5:  # All Camera mode
-                active_flags[0] = True
-                active_flags[1] = True
-                active_flags[2] = True
-                active_flags[3] = True
-            elif current_mode == 6:  # Test Camera mode
-                active_flags[0] = True
-                active_flags[1] = False
-                active_flags[2] = True
-                active_flags[3] = False
-            else:
-                for flag in active_flags:
-                    flag = False  # Disable all streams
+                if self.frame_queue.empty():
+                    #print(f"Empty Queue Nr: {self.nr:.2f}")
+                    await asyncio.sleep(0.05)
+                    continue
 
-            prev_mode = current_mode
+                pts, time_base = await self.next_timestamp()
 
-        await asyncio.sleep(1)  # Poll every second
+                frame = self.frame_queue.get()
 
+                frame = cv2.resize(frame, (640, 480))  # width, height
+                #frame = cv2.resize(frame, (320, 180))  # width, height
+                #frame = cv2.resize(frame, (1280, 720))  # width, height
+                #frame = cv2.resize(frame, (1920, 1080))  # width, height
 
-def graceful_shutdown():
-    """ Cleans up on shutdown """
-    global pcs
-    print("[WebRTC] Shutting down WebRTC connections...")
-    for pc in pcs:
-        asyncio.create_task(pc.close())  # Ensure cleanup happens in event loop
-    pcs.clear()
-    exit(0)
+                #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # flips the color, might not need it!
 
-async def start_servers(frame_queues, mode_value):
-    """ Starts WebRTC signaling server and mode watcher """
-    active_flags = [False, False, False, False]
+                video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
+                video_frame.pts = pts
+                video_frame.time_base = time_base
 
-    signal_server = websockets.serve(
-        lambda websocket, path: handle_offer(websocket, path, frame_queues, active_flags),
-        "localhost", 8766
-    )
-    
-    await asyncio.gather(
-        signal_server,
-        watch_mode_and_update_streams(mode_value, active_flags)  # Background task
-    )
+                return video_frame
 
-def run_webrtc_server(frame_queues, mode_value):
-    """ Runs WebRTC and WebSocket servers in an event loop """
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    async def handle_peerjs_offer(self, request):
+        """ Handles WebRTC offers from PeerJS clients """
+        pc = RTCPeerConnection()
+        self.pcs.add(pc)
 
-    # Handle process exit signals
-    signal.signal(signal.SIGINT, lambda sig, frame: graceful_shutdown())
-    signal.signal(signal.SIGTERM, lambda sig, frame: graceful_shutdown())
+        try:
+            data = await request.json()
 
-    loop.run_until_complete(start_servers(frame_queues, mode_value))
+            offer = RTCSessionDescription(sdp=data["sdp"], type=data["type"])
+            await pc.setRemoteDescription(offer)
+
+            print("[WebRTC] Received offer from PeerJS client")
+
+            # Attach the correct video streams
+            for i, queue in enumerate(self.frame_queues):
+                track = self.ProcessedFrameStream(queue, self.active_flags[i], i)
+                pc.addTrack(track)
+
+            # Create an SDP answer and send it back
+            answer = await pc.createAnswer()
+            await pc.setLocalDescription(answer)
+
+            print("[WebRTC] Sending Answer to PeerJS Client")
+            return web.json_response({
+                "sdp": pc.localDescription.sdp,
+                "type": pc.localDescription.type
+            })
+
+        except Exception as e:
+            print(f"[Error] WebRTC handling failed: {e}")
+            return web.Response(status=500)
+
+        finally:
+            self.pcs.discard(pc)
+
+    async def start_peer_server(self):
+        """ Starts the aiohttp web server for handling PeerJS signaling requests """
+        app = web.Application()
+
+        # Set up CORS
+        cors = aiohttp_cors.setup(app, defaults={
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*"
+            )
+        })
+
+        app.router.add_post("/connect", self.handle_peerjs_offer)
+
+        # Enable CORS for the route
+        for route in list(app.router.routes()):
+            cors.add(route)
+
+        self.server_runner = web.AppRunner(app)
+        await self.server_runner.setup()
+
+        self.server_site = web.TCPSite(self.server_runner, "0.0.0.0", 9001)  # Start server on port 9001
+        await self.server_site.start()
+        print("[WebRTC] PeerJS backend running on port 9001")
+
+    async def watch_mode_and_update_streams(self):
+        """ Update active flags based on mode """
+        prev_mode = None
+
+        while True:
+            current_mode = self.mode_value.value
+
+            if current_mode != prev_mode:
+                print(f"[WebRTC] Mode changed to: {current_mode}")
+
+                # Update active flags for video streams based on mode
+                mode_configs = {
+                    0: [False, False, False, False],  # Disable all
+                    1: [True, False, True, True],  # Manual mode
+                    2: [True, False, True, False],  # Docking
+                    3: [False, False, True, False],  # Transect
+                    4: [True, True, True, False],  # Seagrass
+                    5: [True, True, True, True],  # All cameras
+                    6: [True, False, True, False]  # Test mode
+                }
+                #[stereo_left_queue, stereo_right_queue, down_queue, manipulator_queue]
+
+                for i in range(len(self.active_flags)):
+                    self.active_flags[i].value = mode_configs.get(current_mode, [False] * len(self.active_flags))[i]
+
+                prev_mode = current_mode
+
+            await asyncio.sleep(1)
+
+    async def main(self):
+        """ Starts the WebRTC server and mode watching concurrently """
+        await asyncio.gather(
+            self.start_peer_server(),  # Start the signaling server
+            self.watch_mode_and_update_streams()  # Watch and update streams based on mode
+        )
+
+    def shutdown(self):
+        """ Shutdown the WebRTC server and clean up resources """
+        print("[WebRTC] Shutting down...")
+
+        # Close active WebRTC connections
+        for pc in self.pcs:
+            asyncio.create_task(pc.close())  # Close WebRTC connections gracefully
+        self.pcs.clear()  # Clear the set of peer connections
+
+        # Stop the HTTP server on port 9001
+        if self.server_site:
+            print("[WebRTC] Stopping HTTP server on port 9001...")
+            asyncio.create_task(self.server_site.stop())
+
+        if self.server_runner:
+            print("[WebRTC] Cleaning up the HTTP server runner...")
+            asyncio.create_task(self.server_runner.cleanup())
+
+        print("[WebRTC] Shutdown complete.")
+
+    def run(self):
+        """ Starts the WebRTC server as a separate process """
+        print("[WebRTC] Starting the loop")
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        loop.run_until_complete(self.main())  # Run the server

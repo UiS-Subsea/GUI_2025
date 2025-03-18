@@ -18,7 +18,7 @@ export const Sensor = () => {
       <p className='lg:text-[25px] text-[18px]'>Sensor</p>
       <div className=' text-[15px] w-full gap-7 flex-row flex lg:text-[20px]'>
         <p className='max-w-[140px] h-full w-full lg:max-h-[70px]'>Pressure </p>
-        <p className='dark:text-[#4bd5ff] text-whites'>{data.pressure}</p>
+        <p className='dark:text-[#4bd5ff] text-whites'>{sensorData.TEMPDYBDE.Sensor_temp}</p>
       </div>
       <div className=' text-[15px] w-full h-full gap-8 flex-row flex lg:text-[20px]'>
         <p className='max-w-[140px] h-full w-full lg:max-h-[70px]'>Depth </p>
@@ -26,11 +26,11 @@ export const Sensor = () => {
       </div>
       <div className=' text-[15px] w-full gap-8 flex-row flex lg:text-[20px]'>
         <p className='max-w-[140px] h-full w-full lg:max-h-[70px]'>Floor distance </p>
-        <p className='dark:text-[#4bd5ff] text-whites'>{data.FloorDistance}</p>
+        <p className='dark:text-[#4bd5ff] text-whites'>{sensorData.TEMPDYBDE.Water_temp}</p>
       </div>
       <div className=' text-[15px] w-full gap-8 flex-row flex lg:text-[20px]'>
         <p className='max-w-[140px] h-full w-full lg:max-h-[70px]'>Water temp </p>
-        <p className='dark:text-[#4bd5ff] text-whites'>{data.Watertemperature}</p>
+        <p className='dark:text-[#4bd5ff] text-whites'>{sensorData.COMTEMP.Com_temp}</p>
       </div>
     </div>
   );

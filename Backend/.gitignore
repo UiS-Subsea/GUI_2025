@@ -88,5 +88,20 @@ docker-compose.override.yml
 **/docker-compose.*.yml
 .dockerignore
 
-# Ignore Virtual env
+# AWS Lambda or Serverless-related temporary files
+.sls/
+
+# JetBrains Rider
+.idea/
+
+# User-specific files
+.vs/
+.idea/
+*.swp
+
+# Mac-specific files
+.DS_Store
+
+# Ignore virtual environment directories
 myenv/
+

@@ -4,6 +4,9 @@ import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-insta
 
 import { createAppWindow } from './appWindow';
 
+// Import PeerJS to run the signaling server
+import { PeerServer } from 'peer'; // Import the PeerServer module
+
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 /** Handle creating/removing shortcuts on Windows when installing/uninstalling. */
@@ -11,11 +14,27 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+// Declare peerServer globally
+let peerServer: any; // Declare the PeerJS server variable
+
 app.whenReady().then(() => {
   installExtension(REACT_DEVELOPER_TOOLS)
     .then((name) => console.info(`Added Extension:  ${name}`))
     .catch((err) => console.info('An error occurred: ', err));
+
+  // Start the PeerJS signaling server
+  startPeerServer();
 });
+
+// Function to start the PeerJS server
+function startPeerServer() {
+  peerServer = PeerServer({
+    port: 9000, // You can choose any available port
+    path: '/peerjs', // The path for the PeerJS server (same path you'll use in your frontend)
+  });
+
+  console.log('[PeerJS] Signaling server running on port 9000');
+}
 
 /**
  * This method will be called when Electron has finished

@@ -1,11 +1,20 @@
 import multiprocessing
 import threading
-from WebRTC import run_webrtc_server
+from WebRTC import WebRTCServer
 from communication_handler import CommunicationHandler
 from task_manager import TaskManager
 from websocket_server import WebSocketServer
 from Thread_info import ThreadWatcher
 
+
+def log_reader(log_queue, thread_watcher, id):
+    """ Function to read logs from the queue and print them """
+    print("[LogReader] it has started")
+    while thread_watcher.should_run(id):
+        log_message = log_queue.get()
+        if log_message == "STOP":
+            break  # Stop reading on "STOP" signal
+        print(log_message)
 
 def main():
     # Queues for communication
@@ -14,17 +23,25 @@ def main():
     manual_flag = multiprocessing.Value("i", 1)  # 1 = Manual mode, 0 = Autonomy
 
     # Video Frames to be sent to .NET
-    stereo_left_queue = multiprocessing.Queue()
-    stereo_right_queue = multiprocessing.Queue()
-    down_queue = multiprocessing.Queue()
-    manipulator_queue = multiprocessing.Queue()
+    stereo_left_queue = multiprocessing.Queue(100)
+    stereo_right_queue = multiprocessing.Queue(100)
+    down_queue = multiprocessing.Queue(100)
+    manipulator_queue = multiprocessing.Queue(100)
     frame_queue = [stereo_left_queue, stereo_right_queue, down_queue, manipulator_queue]
 
     mode_flag = multiprocessing.Value("i", 0)  
     # 0 = No Mode, 1 = Manual, 2 = Docking, 3 = transect, 4 = SeaGrass, 5 = All Cameras, 6 = Test Camera
 
+    # Start a log queue for capturing WebRTC logs
+    log_queue = multiprocessing.Queue()
+
     # Start thread watcher to manage all threads.
     thread_watcher = ThreadWatcher()
+
+    # Start a thread to read logs from the log queue
+    id = thread_watcher.add_thread()
+    log_thread = threading.Thread(target=log_reader, args=(log_queue, thread_watcher, id), daemon=True)
+    log_thread.start()
 
     # Start network handler (communication with .NET using ZeroMQ).
     id = thread_watcher.add_thread()
@@ -62,21 +79,25 @@ def main():
     websocket_thread.start()
 
     # Start WebRTC server for sending Video Feed to fronted (UDP).
-#    id = thread_watcher.add_thread()
-#    webrtc_process = multiprocessing.Process(
-#        target=run_webrtc_server,
-#        args=(frame_queue, mode_flag),
-#        daemon=True)
-    
-#    webrtc_process.start()
+    id = thread_watcher.add_thread()
+    webrtc_server = WebRTCServer(frame_queue, mode_flag, log_queue)
 
-    rov_data_queue.put({"autonomdata": [1,2,3,4,0,0,0,0]})
+    webrtc_process = threading.Thread(
+        target=webrtc_server.run, daemon=True)
+    
+    webrtc_process.start()
 
     def cleanup():
         print("\nShutting down safely...")
+        task_manager.stop_all_tasks()
         communication.stop()
         websocket_server.stop_server()
         thread_watcher.stop_all_threads()
+        webrtc_server.shutdown()
+        webrtc_process.terminate()  # Ensure WebRTC process stops
+        webrtc_process.join()
+
+    print("[Main] We got to the while loop in main")
 
     try:
         while True:
@@ -87,9 +108,7 @@ def main():
             pass  # Keep running
     except KeyboardInterrupt:
         print("\nShutting down safely...")
-        communication.stop()
-        #webrtc_process.terminate()  # Ensure WebRTC process stops
-        thread_watcher.stop_all_threads()
+        cleanup()
 
 if __name__ == "__main__":
     main()
@@ -98,7 +117,7 @@ if __name__ == "__main__":
 
 # TO DO List
 
-# 3. Need to find a way to test if it works
+# 3. Need to find a way to test if it works WebRTC!!!!
 
 # 3.1 Might try to send fake UDP Gstream from test server (find right format videos)
 
