@@ -62,9 +62,12 @@ export const globals = {
       }
     },
   },
+
+  // Add a specific function to open the camera window
+  openCameraWindow: () => {
+    ipcRenderer.send('open-camera-window');
+  },
 };
 
-/** Create a safe, bidirectional, synchronous bridge across isolated contexts
- *  When contextIsolation is enabled in your webPreferences, your preload scripts run in an "Isolated World".
- */
+/** Create a safe, bidirectional, synchronous bridge across isolated contexts */
 contextBridge.exposeInMainWorld('electron', globals);
