@@ -5,6 +5,7 @@ import { productName, version } from '../package.json';
 import { checker } from 'vite-plugin-checker';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 import { pluginExposeRenderer } from './vite.base.config';
+import path from 'path';
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -17,8 +18,15 @@ export default defineConfig((env) => {
     mode,
     base: './',
     build: {
-      outDir: `.vite/renderer/${name}`,
+      outDir: 'dist',
+      emptyOutDir: true,
+      rollupOptions: {
+        input: {
+          index: path.resolve(__dirname, '../index.html'),
+        },
+      },
     },
+
     resolve: {
       preserveSymlinks: true,
     },
