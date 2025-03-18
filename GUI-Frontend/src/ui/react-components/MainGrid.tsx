@@ -13,6 +13,8 @@ import { LightSettings } from './grid-items/LightSettings';
 import { Angles } from './grid-items/Angles';
 import { Manipulator } from './grid-items/Manipulator';
 import { Coordinates } from './grid-items/Coordinates';
+import { Grid1 } from './grid-items/Grid1';
+import { Grid2 } from './grid-items/Grid2';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 export const DashboardGrid = () => {
@@ -22,24 +24,27 @@ export const DashboardGrid = () => {
       { i: 'lightSettings', x: 0, y: 2, w: 2, h: 2 },
       { i: 'driveMode', x: 0, y: 5, w: 1, h: 4.5 },
       { i: 'angles', x: 1, y: 5, w: 1, h: 4.5 },
-      { i: 'temperature', x: 2, y: 5, w: 2, h: 3.5 },
+      { i: 'temperature', x: 2, y: 5, w: 2, h: 4.5 },
       { i: 'coordinates', x: 6, y: 4, w: 2, h: 4.5 },
-      { i: 'cameraFeed', x: 2, y: 0, w: 4, h: 5 },
+      //{ i: 'cameraFeed', x: 2, y: 0, w: 4, h: 5 },
       { i: 'sensors', x: 6, y: 0, w: 1, h: 4 },
       { i: 'battery', x: 7, y: 0, w: 1, h: 4 },
-      { i: 'manipulatorConnection', x: 4, y: 5, w: 2, h: 3.5 },
+      { i: 'manipulatorConnection', x: 4, y: 5, w: 2, h: 4.5 },
+      { i: 'grid1', x: 2, y: 0, w: 2, h: 4 },
+      { i: 'grid2', x: 4, y: 0, w: 2, h: 4 },
     ],
     sm: [
       { i: 'cameraFunctions', x: 0, y: 0, w: 2, h: 3 },
       { i: 'lightSettings', x: 0, y: 2, w: 2, h: 2 },
       { i: 'driveMode', x: 0, y: 6, w: 2, h: 3 },
       { i: 'angles', x: 2, y: 8, w: 4, h: 2 },
-      { i: 'temperature', x: 2, y: 5, w: 4, h: 2 },
-      { i: 'cameraFeed', x: 2, y: 0, w: 4, h: 4 },
+      { i: 'temperature', x: 2, y: 3, w: 4, h: 2 },
       { i: 'sensors', x: 6, y: 0, w: 2, h: 3 },
       { i: 'battery', x: 6, y: 4, w: 2, h: 2 },
       { i: 'manipulatorConnection', x: 6, y: 5, w: 2, h: 3 },
       { i: 'coordinates', x: 2, y: 9, w: 4, h: 4 },
+      { i: 'grid1', x: 0, y: 8, w: 4, h: 4 },
+      { i: 'grid2', x: 4, y: 8, w: 4, h: 4 },
     ],
   };
 
@@ -106,12 +111,12 @@ export const DashboardGrid = () => {
         >
           <Coordinates />
         </div>
-        <div
+        {/* <div
           key='cameraFeed'
           className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white border-black border-2 rounded-md'
         >
           <CameraFeed />
-        </div>
+        </div> */}
         <div
           key='sensors'
           className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md overflow-auto'
@@ -129,6 +134,18 @@ export const DashboardGrid = () => {
           className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
         >
           <Manipulator />
+        </div>
+        <div
+          key='grid1'
+          className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+        >
+          <Grid1 />
+        </div>
+        <div
+          key='grid2'
+          className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+        >
+          <Grid2 />
         </div>
       </ResponsiveGridLayout>
     </div>
