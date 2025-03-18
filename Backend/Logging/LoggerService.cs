@@ -1,3 +1,5 @@
+
+
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
@@ -12,58 +14,99 @@ namespace Backend.Logging
 
         public LoggerService(ILoggerFactory loggerFactory)
         {
-            // Define the logs folder
+            //Define the logs folder
             _logFolder = Path.Combine(Directory.GetCurrentDirectory(), "logs");
-            if (!Directory.Exists(_logFolder))
-                Directory.CreateDirectory(_logFolder);
+            Directory.CreateDirectory(_logFolder); // Ensure directory exists
 
             _dataLogger = loggerFactory.CreateLogger("DataLogger");
         }
 
-        // Function to read the latest logs and return as a string
+
+        //Function to read the latest logs and return as a string
         public string GetFilteredLogs(string filter)
-        {
-            if (!Directory.Exists(_logFolder))
+{
+    if (!Directory.Exists(_logFolder))
         return "Log directory does not exist.";
 
-        var logFiles = Directory.GetFiles(_logFolder, "*.log")
-            .OrderByDescending(File.GetCreationTime) // Sort files by creation date (latest first)
-            .ToList();
+    var logFiles = Directory.GetFiles(_logFolder, "*.log")
+        .OrderByDescending(File.GetCreationTime) //Sort files so latest is first
+        .ToList();
 
-        if (!logFiles.Any())
-            return "No log files found.";
+    if (!logFiles.Any())
+        return "No log files found.";
 
-        DateTime startDate = filter switch
+    DateTime startDate = filter switch
+    {
+        "last7days" => DateTime.Now.AddDays(-7),
+        "last30days" => DateTime.Now.AddDays(-30),
+        _ => DateTime.Today
+    };
+
+    // Read logs from selected date range
+    var filteredLogs = logFiles
+        .Where(file => File.GetCreationTime(file) >= startDate)
+        .SelectMany(file => 
         {
-            "last7days" => DateTime.Now.AddDays(-7),
-            "last30days" => DateTime.Now.AddDays(-30),
-            _ => DateTime.Today
-        };
+            var lines = File.ReadAllLines(file).Reverse().ToList(); // Read & Reverse
+            return lines;
+        })
+        .ToList();
 
-        // Read logs from selected date range
-        var filteredLogs = logFiles
-            .Where(file => File.GetCreationTime(file) >= startDate)
-            .SelectMany(file => File.ReadAllLines(file)) // Read all lines in file
-            .Reverse() // Reverse order so newest logs appear first
-            .ToList();
 
-        return filteredLogs.Any() ? string.Join("\n", filteredLogs) : "No logs matching the selected date range.";
+    return filteredLogs.Any() ? string.Join("\n", filteredLogs) : "No logs matching the selected date range.";
+}
+
+
+
+
+
+
+        //Generic function for writing logs (Ensures thread safety)
+        private void WriteLog(string logType, string message)
+        {
+            string logFile = Path.Combine(_logFolder, $"{DateTime.Now:yyyy-MM-dd}.log");
+            string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {logType}: {message}";
+
+            try
+            {
+                lock (this)  // Ensures thread-safe writes
+                {
+                    File.AppendAllLines(logFile, new[] { logEntry });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR WRITING TO LOG FILE: {ex.Message}");
+            }
+
+            // Log internally based on log type
+            switch (logType)
+            {
+                case "INFO":
+                    _dataLogger.LogInformation(logEntry);
+                    break;
+                case "WARNING":
+                    _dataLogger.LogWarning(logEntry);
+                    break;
+                case "ERROR":
+                    _dataLogger.LogError(logEntry);
+                    break;
+            }
         }
 
-
-        // Check if there is a log folder(creates if not) and saves the log file there
         public void LogInfo(string message)
         {
-            if (!Directory.Exists(_logFolder))
-                Directory.CreateDirectory(_logFolder);
-
-            string logFile = Path.Combine(_logFolder, $"{DateTime.Now:yyyy-MM-dd}.log");
-            string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} INFO: {message}{Environment.NewLine}";
-
-            File.AppendAllText(logFile, logEntry);
-            Console.WriteLine($"LOG: {logEntry}");
-            _dataLogger.LogInformation(logEntry);
+            WriteLog("INFO", message);
         }
 
+        public void LogWarning(string message)
+        {
+            WriteLog("WARNING", message);
+        }
+
+        public void LogError(string message)
+        {
+            WriteLog("ERROR", message);
+        }
     }
 }

@@ -1,15 +1,86 @@
-import { app, BrowserWindow } from 'electron';
-
+import { app, BrowserWindow, ipcMain } from 'electron';
+import path from 'path';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
-
 import { createAppWindow } from './appWindow';
-
-// Import PeerJS to run the signaling server
-import { PeerServer } from 'peer'; // Import the PeerServer module
+import fs from 'fs';
+import { PeerServer } from 'peer';
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
-/** Handle creating/removing shortcuts on Windows when installing/uninstalling. */
+let cameraWindow: BrowserWindow | null = null;
+
+/**
+ * Create a secondary Camera Window
+ */
+function createCameraWindow() {
+  cameraWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    title: 'Camera Window',
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.js'),
+      webSecurity: true,
+    },
+  });
+
+  const devServerURL = process.env.VITE_DEV_SERVER_URL;
+
+  if (devServerURL) {
+    // Development mode
+    console.log('✅ Dev mode: Loading CameraWindow from Vite dev server:', devServerURL);
+    cameraWindow.loadURL(`${devServerURL}#/camera`);
+  } else {
+    // Production mode
+    // Look for index.html in the dist directory instead of .vite/build
+    const indexHtmlPath = path.join(__dirname, '..', 'dist', 'index.html');
+    console.log('✅ Production mode: Loading CameraWindow from file:', indexHtmlPath);
+
+    // Optional: Check if file exists to avoid silent white screen
+    if (!fs.existsSync(indexHtmlPath)) {
+      console.error('❌ index.html not found at:', indexHtmlPath);
+      // Try alternative path
+      const altPath = path.join(process.cwd(), 'dist', 'index.html');
+      if (fs.existsSync(altPath)) {
+        cameraWindow.loadFile(altPath, { hash: '/camera' });
+        return;
+      }
+      console.error('❌ index.html not found at alternative path:', altPath);
+      return;
+    }
+
+    cameraWindow.loadFile(indexHtmlPath, { hash: '/camera' });
+  }
+
+  // Set permissions for camera access
+  cameraWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+    const allowedPermissions = ['media'];
+    if (allowedPermissions.includes(permission)) {
+      callback(true);
+    } else {
+      callback(false);
+    }
+  });
+
+  // Enable camera access
+  cameraWindow.webContents.session.setPermissionCheckHandler((webContents, permission) => {
+    return permission === 'media';
+  });
+
+  cameraWindow.webContents.openDevTools(); // Remove or comment out in production
+
+  cameraWindow.on('closed', () => {
+    cameraWindow = null;
+  });
+}
+
+// Listen for the open-camera-window event from renderer
+ipcMain.on('open-camera-window', () => {
+  createCameraWindow();
+});
+
+// Squirrel installer handler (Windows)
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
@@ -17,10 +88,11 @@ if (require('electron-squirrel-startup')) {
 // Declare peerServer globally
 let peerServer: any; // Declare the PeerJS server variable
 
+// Install React Developer Tools on dev startup
 app.whenReady().then(() => {
   installExtension(REACT_DEVELOPER_TOOLS)
-    .then((name) => console.info(`Added Extension:  ${name}`))
-    .catch((err) => console.info('An error occurred: ', err));
+    .then((name) => console.info(`✅ DevTools Extension Loaded: ${name}`))
+    .catch((err) => console.warn('❌ DevTools install error:', err));
 
   // Start the PeerJS signaling server
   startPeerServer();
@@ -36,43 +108,19 @@ function startPeerServer() {
   console.log('[PeerJS] Signaling server running on port 9000');
 }
 
-/**
- * This method will be called when Electron has finished
- * initialization and is ready to create browser windows.
- * Some APIs can only be used after this event occurs.
- */
+// Create main window on app ready
 app.on('ready', createAppWindow);
 
-/**
- * Emitted when the application is activated. Various actions can
- * trigger this event, such as launching the application for the first time,
- * attempting to re-launch the application when it's already running,
- * or clicking on the application's dock or taskbar icon.
- */
+// macOS: Re-create window when dock icon is clicked and no windows are open
 app.on('activate', () => {
-  /**
-   * On OS X it's common to re-create a window in the app when the
-   * dock icon is clicked and there are no other windows open.
-   */
   if (BrowserWindow.getAllWindows().length === 0) {
     createAppWindow();
   }
 });
 
-/**
- * Emitted when all windows have been closed.
- */
+// Quit app when all windows are closed (except on macOS)
 app.on('window-all-closed', () => {
-  /**
-   * On OS X it is common for applications and their menu bar
-   * to stay active until the user quits explicitly with Cmd + Q
-   */
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
-
-/**
- * In this file you can include the rest of your app's specific main process code.
- * You can also put them in separate files and import them here.
- */

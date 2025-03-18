@@ -4,17 +4,52 @@ export const Manipulator = () => {
   const [connection, setConnection] = useState(true); // State for connection status
   const [imagePath, setImagePath] = useState('../assets/images/red.svg'); // State for image path
 
-  useEffect(() => {
-    //lage kode som sjekker om det er en connection for så å bruke setConnection
+  const [lastLoggedStatus, setLastLoggedStatus] = useState<boolean | null>(null);
 
-    if (connection === true) {
-      console.log('connected');
-      setImagePath('../assets/images/green.svg');
-    } else {
-      console.log('disconnected');
-      setImagePath('../assets/images/red.svg');
+  const sendLogToBackend = async (isConnected: boolean) => {
+    if (lastLoggedStatus === isConnected) {
+      return;
     }
-  }, [connection]); // Trigger effect when `connection` changes
+
+    console.log(`Sending log to backend: ${isConnected ? 'Manipulator is connected' : 'Manipulator is disconnected'}`);
+
+    try {
+      const response = await fetch('http://localhost:5017/api/rov/ManipulatorConnection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isConnected }),
+      });
+
+      const result = await response.text();
+      console.log(`Backend response: ${result}`);
+
+      setLastLoggedStatus(isConnected);
+    } catch (error) {
+      console.error('Error sending log:', error);
+    }
+  };
+
+  // useEffect(() => {
+
+  //   //lage kode som sjekker om det er en connection for så å bruke setConnection
+
+  //   if (connection === true) {
+  //     console.log('connected');
+  //     setImagePath('../assets/images/green.svg');
+  //   } else {
+  //     console.log('disconnected');
+  //     setImagePath('../assets/images/red.svg');
+  //   }
+  // }, [connection]); // Trigger effect when `connection` changes
+
+  useEffect(() => {
+    if (lastLoggedStatus === null || lastLoggedStatus !== connection) {
+      sendLogToBackend(connection);
+      setLastLoggedStatus(connection);
+    }
+
+    setImagePath(connection ? '../assets/images/green.svg' : '../assets/images/red.svg');
+  }, [connection]);
 
   return (
     <>
