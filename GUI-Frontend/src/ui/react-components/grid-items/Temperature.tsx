@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 // eslint-disable-next-line import/no-unresolved
 import { useSensorData } from 'WebSocketProvider';
 
@@ -16,14 +16,52 @@ export const Temperature = () => {
     { id: temperatureDataBackend.THRUSTPAADRAG.HFF, x: '72%', y: '25%' }, // horisontal høyre fram
     { id: temperatureDataBackend.THRUSTPAADRAG.HHB, x: '72%', y: '59%' }, // horisontal høyre bak
     { id: temperatureDataBackend.THRUSTPAADRAG.HVB, x: '30%', y: '59%' }, // horisontal venstre bak
-    { id: temperatureDataBackend.COMTEMP.Com_temp, x: '50%', y: '15%' }, // Com temp
-    { id: temperatureDataBackend.REGTEMP.REG_temp, x: '50%', y: '27%' }, // Regulator temp
-    { id: temperatureDataBackend.REGTEMP.Motor_temp, x: '50%', y: '39%' }, // Motor temp
-    { id: temperatureDataBackend.TEMPDYBDE.Sensor_temp, x: '50%', y: '51%' }, // sensor temp
-    { id: temperatureDataBackend.DATA12VRIGHT.Temp, x: '50%', y: '63%' }, // 12V right kort temp
-    { id: temperatureDataBackend.DATA12VLEFT.Temp, x: '50%', y: '75%' }, // 12V left kort temp
-    { id: temperatureDataBackend.DATA5V.Power_temp, x: '50%', y: '87%' }, // 5V power temp
+    { name: 'Com Temperature', id: temperatureDataBackend.COMTEMP.Com_temp, x: '50%', y: '15%' }, // Com temp
+    { name: 'Regulator Temperature', id: temperatureDataBackend.REGTEMP.REG_temp, x: '50%', y: '27%' }, // Regulator temp
+    { name: 'Motor Temperature', id: temperatureDataBackend.REGTEMP.Motor_temp, x: '50%', y: '39%' }, // Motor temp
+    { name: 'Sensor Temperature', id: temperatureDataBackend.TEMPDYBDE.Sensor_temp, x: '50%', y: '51%' }, // sensor temp
+    { name: '12V Right Card Temperature', id: temperatureDataBackend.DATA12VRIGHT.Temp, x: '50%', y: '63%' }, // 12V right kort temp
+    { name: '12V Left Temperature', id: temperatureDataBackend.DATA12VLEFT.Temp, x: '50%', y: '75%' }, // 12V left kort temp
+    { name: '5V Power Temperature', id: temperatureDataBackend.DATA5V.Power_temp, x: '50%', y: '87%' }, // 5V power temp
   ];
+
+  const [lastLoggedStatus, setLastLoggedStatus] = useState<Record<string, string>>({});
+
+  const getTemperatureStatus = (temp: number) => {
+    if (temp >= 30) return 'WARNING: Too High';
+    if (temp >= 20) return 'WARNING: High';
+    return 'INFO: Normal';
+  };
+
+  const sendTemperatureLog = async (sensorName: string, tempValue: number) => {
+    try {
+      await fetch('http://localhost:5017/api/rov/TemperatureLog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sensorName, value: tempValue }),
+      });
+    } catch (error) {
+      console.error('Error sending temperature log:', error);
+    }
+  };
+
+  useEffect(() => {
+    temperatureData.forEach((item) => {
+      const tempValue = Number(item.id);
+      if (!isNaN(tempValue)) {
+        const newStatus = getTemperatureStatus(tempValue);
+        const lastStatus = lastLoggedStatus[item.name];
+
+        if (newStatus !== lastStatus) {
+          sendTemperatureLog(item.name, tempValue);
+          setLastLoggedStatus((prev) => ({
+            ...prev,
+            [item.name]: newStatus,
+          }));
+        }
+      }
+    });
+  }, [temperatureData]);
 
   return (
     <>

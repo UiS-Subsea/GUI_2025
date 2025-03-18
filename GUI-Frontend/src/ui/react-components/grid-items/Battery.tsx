@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 export const Battery = () => {
   const batteryData = {
@@ -7,6 +7,36 @@ export const Battery = () => {
     current: 2.5,
   };
   const watt = batteryData.voltage * batteryData.current;
+
+  const [prevBatteryStatus, setPrevBatteryStatus] = useState<string | null>(null);
+
+  const getBatteryStatus = (percentage: number) => {
+    if (percentage < 20) return 'Battery LOW';
+    if (percentage < 60) return 'Battery MEDIUM';
+    return 'Battery OK';
+  };
+
+  // Function to send logs to backend
+  const sendBatteryLog = async (percentage: number) => {
+    const status = getBatteryStatus(percentage);
+
+    if (prevBatteryStatus !== status) {
+      try {
+        await fetch('http://localhost:5017/api/rov/BatteryStatus', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ percentage }),
+        });
+        setPrevBatteryStatus(status); // Update last known status
+      } catch (error) {
+        console.error('Error sending battery log:', error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    sendBatteryLog(batteryData.batteryPercentage);
+  }, []);
 
   return (
     <div className='flex justify-center items-center flex-col lg:text-[25px]  text-[18px] gap-4 '>
