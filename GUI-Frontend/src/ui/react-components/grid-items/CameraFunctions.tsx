@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '../Button';
+import CamWindowButton from '../CamWindowButton';
 
 export const CameraFunctions = () => {
   return (
@@ -7,8 +8,7 @@ export const CameraFunctions = () => {
       <div className='w-full pt-2 justify-center flex '>Camera Functions</div>
       <div className='w-full h-full flex flex-col gap-4 justify-center items-center'>
         <div className='gap-4 flex flex-col lg:flex-row min-w-[70px] w-full'>
-          <Button name='Turn on' />
-          <Button name='Turn off' />
+          <CamWindowButton />
         </div>
         <div className='gap-4 flex flex-col lg:flex-row min-w-[70px] w-full'>
           <Button name='Screenshot' />

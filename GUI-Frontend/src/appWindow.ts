@@ -85,10 +85,6 @@ export function createAppWindow(): BrowserWindow {
  * Register Inter Process Communication
  */
 function registerMainIPC() {
-  /**
-   * Here you can assign IPC related codes for the application window
-   * to Communicate asynchronously from the main process to renderer processes.
-   */
   registerWindowStateChangedEvents(appWindow);
   registerMenuIpc(appWindow);
 }

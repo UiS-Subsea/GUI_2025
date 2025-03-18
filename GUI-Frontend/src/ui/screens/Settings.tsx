@@ -3,32 +3,12 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { NavigateButton } from '../react-components/NavigateButton';
 import { DarkModeToggle } from '../react-components/navbar-items/DarkModeToggle';
-
-// Add this to let TypeScript know about the electron global
-declare global {
-  interface Window {
-    electron: {
-      openCameraWindow: () => void;
-      ipcRenderer: any;
-      versions: any;
-    };
-  }
-}
+import CamWindowButton from '../react-components/CamWindowButton';
 
 export const Settings: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void }> = ({
   isDarkMode,
   toggleDarkMode,
 }) => {
-  // Function to open camera window
-  const handleOpenCameraWindow = () => {
-    console.log('Opening camera window'); // Add logging to confirm function is called
-    if (window.electron && window.electron.openCameraWindow) {
-      window.electron.openCameraWindow();
-    } else {
-      console.error('Electron API not available');
-    }
-  };
-
   return (
     <>
       <div className='w-screen h-screen bg-lightBg dark:bg-darkBg'>
@@ -65,15 +45,7 @@ export const Settings: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => voi
         </div>
 
         <div className='p-6'>
-          <h1 className='text-lightText dark:text-white text-xl mb-4'>Camera Settings</h1>
-
-          {/* Add the button to open camera window */}
-          <button
-            onClick={handleOpenCameraWindow}
-            className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors'
-          >
-            Show Camera Feed
-          </button>
+          <h1 className='text-lightText dark:text-white text-xl mb-4'> XXXX Settings</h1>
         </div>
       </div>
     </>
