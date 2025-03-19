@@ -13,16 +13,19 @@ namespace Backend
         private readonly IManiController _maniController;
         private readonly ILogger<SDL2PoolService> _logger;
         private readonly ICommandQueueService<Dictionary<string, object>> _commandQueue;
+        private readonly IModeService _modeService;
         public SDL2PoolService(
             ICommandQueueService<Dictionary<string, object>> commandQueue,
             ILogger<SDL2PoolService> logger,
             IROVController rovController,
-            IManiController maniController)
+            IManiController maniController,
+            IModeService modeService)
         {
             _rovController = rovController;
             _maniController = maniController;
             _commandQueue = commandQueue;
             _logger = logger;
+            _modeService = modeService;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -56,6 +59,14 @@ namespace Backend
                         // Process all events and update state
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
+                
+                            // Skip processing if mode is not "Manual"
+                            if (!_modeService.IsManual()) // Check if the mode is manual
+                            {
+                                continue;
+                            }
+                            Console.WriteLine("Controller: " + e.ToString());
+
                             // Checks if Event belongs to the ROV, if dose then process it.
                             if (_rovController.IsRelevantEvent(e))
                             {

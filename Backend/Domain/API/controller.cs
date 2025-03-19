@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
+using Backend.Infrastructure.Interface;
 
 namespace Backend.Domain.API
 {
@@ -13,10 +14,10 @@ namespace Backend.Domain.API
     [Route("api/rov")]
     public class RovController : ControllerBase
     {
-        private readonly CommandQueueService<Dictionary<string, object>> _commandQueueService;
+        private readonly ICommandQueueService<Dictionary<string, object>> _commandQueueService;
         private readonly LoggerService _loggerService;
 
-        public RovController(CommandQueueService<Dictionary<string, object>> commandQueueService, LoggerService loggerService)
+        public RovController(ICommandQueueService<Dictionary<string, object>> commandQueueService, LoggerService loggerService)
         {
             _commandQueueService = commandQueueService;
             _loggerService = loggerService;

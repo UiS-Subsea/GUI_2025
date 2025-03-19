@@ -16,10 +16,10 @@ Y_AKSE = 0
 Z_AKSE = 6
 R_AKSE = 2
 
-GST_FEED_STEREO_L = "-v udpsrc multicast-group=224.1.1.1 auto-multicast=true port=5000 ! application/x-rtp, media=video, clock-rate=90000, encoding-name=H264, payload=96 ! queue max-size-buffers=1 leaky=downstream ! rtph264depay ! h264parse ! decodebin ! videoconvert ! appsink sync=false"
-GST_FEED_STEREO_R = "-v udpsrc multicast-group=224.1.1.1 auto-multicast=true port=5001 ! application/x-rtp, media=video, clock-rate=90000, encoding-name=H264, payload=96 ! queue max-size-buffers=1 leaky=downstream ! rtph264depay ! h264parse ! decodebin ! videoconvert ! appsink sync=false"
-GST_FEED_DOWN = "-v udpsrc multicast-group=224.1.1.1 auto-multicast=true port=5002 ! application/x-rtp, media=video, clock-rate=90000, encoding-name=H264, payload=96 ! queue max-size-buffers=1 leaky=downstream ! rtph264depay ! h264parse ! decodebin ! videoconvert ! appsink sync=false"
-GST_FEED_MANIPULATOR = "-v udpsrc multicast-group=224.1.1.1 auto-multicast=true port=5003 ! application/x-rtp, media=video, clock-rate=90000, encoding-name=H264, payload=96 ! queue max-size-buffers=1 leaky=downstream ! rtph264depay ! h264parse ! decodebin ! videoconvert ! appsink sync=false"
+GST_FEED_STEREO_L = "-v udpsrc multicast-group=224.1.1.1 auto-multicast=true port=5000 buffer-size=2097152 ! application/x-rtp, media=video, clock-rate=90000, encoding-name=H264, payload=96 ! queue max-size-buffers=10 leaky=downstream ! rtph264depay ! h264parse ! decodebin ! videoconvert ! appsink sync=false"
+GST_FEED_STEREO_R = "-v udpsrc multicast-group=224.1.1.1 auto-multicast=true port=5001 buffer-size=2097152 ! application/x-rtp, media=video, clock-rate=90000, encoding-name=H264, payload=96 ! queue max-size-buffers=10 leaky=downstream ! rtph264depay ! h264parse ! decodebin ! videoconvert ! appsink sync=false"
+GST_FEED_DOWN = "-v udpsrc multicast-group=224.1.1.1 auto-multicast=true port=5002 buffer-size=2097152 ! application/x-rtp, media=video, clock-rate=90000, encoding-name=H264, payload=96 ! queue max-size-buffers=15 leaky=downstream ! rtph264depay ! h264parse ! decodebin ! videoconvert ! appsink sync=false"
+GST_FEED_MANIPULATOR = "-v udpsrc multicast-group=224.1.1.1 auto-multicast=true port=5003 buffer-size=2097152 ! application/x-rtp, media=video, clock-rate=90000, encoding-name=H264, payload=96 ! queue max-size-buffers=15 leaky=downstream ! rtph264depay ! h264parse ! decodebin ! videoconvert ! appsink sync=false"
 
 
 class Camera:
@@ -107,32 +107,32 @@ class CameraManager:
         return frame
 
     def start_stereo_cam_L(self):
-        #self.cam_stereoL = Camera("StereoL", GST_FEED_STEREO_L)
-        self.cam_stereoL = Camera("StereoL", None) # webcam test, remove after
+        self.cam_stereoL = Camera("StereoL", GST_FEED_STEREO_L)
+        #self.cam_stereoL = Camera("StereoL", None) # webcam test, remove after
         print("Starting camera: StereoL")
         success = self.cam_stereoL.open_cam()
         if success:
             self.active_cameras.append(self.cam_stereoL)
 
     def start_stereo_cam_R(self):
-        #self.cam_stereoR = Camera("StereoR", GST_FEED_STEREO_R)
-        self.cam_stereoR = Camera("StereoR", None) # webcam test, remove after
+        self.cam_stereoR = Camera("StereoR", GST_FEED_STEREO_R)
+        #self.cam_stereoR = Camera("StereoR", None) # webcam test, remove after
         print("Starting camera: StereoR")
         success = self.cam_stereoR.open_cam()
         if success:
             self.active_cameras.append(self.cam_stereoR)
 
     def start_down_cam(self):
-        #self.cam_down = Camera("Down", GST_FEED_DOWN)
-        self.cam_down = Camera("Down", None) # webcam test, remove after
+        self.cam_down = Camera("Down", GST_FEED_DOWN)
+        #self.cam_down = Camera("Down", None) # webcam test, remove after
         print("Starting camera: Down")
         success = self.cam_down.open_cam()
         if success:
             self.active_cameras.append(self.cam_down)
 
     def start_manipulator_cam(self):
-        #self.cam_manipulator = Camera("Manipulator", GST_FEED_MANIPULATOR)
-        self.cam_manipulator = Camera("Manipulator", None) # webcam test, remove after
+        self.cam_manipulator = Camera("Manipulator", GST_FEED_MANIPULATOR)
+        #self.cam_manipulator = Camera("Manipulator", None) # webcam test, remove after
         #self.cam_manipulator = Camera("Manipulator", GST_FEED_DOWN)
         print("Starting camera: Manipulator")
         success = self.cam_manipulator.open_cam()
@@ -277,48 +277,51 @@ class ExecutionClass:
 
     def show(self, frame, name="frame"):
     # Map the name to the corresponding queue
+
+    # Track the time before processing the frame
+        #current_time = time.time()
     
         if name == "StereoL":
             # Check if the queue is full and remove the oldest item if necessary
-            if self.stereo_left_queue.full():
-                self.stereo_left_queue.get()  # Remove the oldest item to make space
+            #if self.stereo_left_queue.full():
+            #    self.stereo_left_queue.get()  # Remove the oldest item to make space
  
             self.stereo_left_queue.put(frame)
 
 
         elif name == "StereoR":
-            if self.stereo_right_queue.full():
-                self.stereo_right_queue.get()  # Remove the oldest item to make space
+            #if self.stereo_right_queue.full():
+            #    self.stereo_right_queue.get()  # Remove the oldest item to make space
 
             self.stereo_right_queue.put(frame)
 
 
         elif name == "Down":
-            if self.down_queue.full():
-                self.down_queue.get()
+            #if self.down_queue.full():
+            #    self.down_queue.get()
 
             self.down_queue.put(frame)
 
             # Check if the frames are the same
-            if np.array_equal(frame, self.old_frame):
-                print("The frames are exactly the same.")
-                self.old_frame = frame
-            else:
-                print("The frames are different.")
-                self.old_frame = frame
+            #if np.array_equal(frame, self.old_frame):
+            #    print("The frames are exactly the same.")
+            #    self.old_frame = frame
+            #else:
+            #    print("The frames are different.")
+            #    self.old_frame = frame
 
 
         elif name == "Manipulator":
-            if self.manipulator_queue.full():
-                self.manipulator_queue.get()
+            #if self.manipulator_queue.full():
+            #    self.manipulator_queue.get()
 
             self.manipulator_queue.put(frame)
 
         else:
             print(f"Unknown name '{name}', frame not added to any queue.")
-        
-        if cv2.waitKey(1) == ord("q"):
-            self.stop_everything()
+
+        #if cv2.waitKey(1) == ord("q"):
+        #    self.stop_everything()
 
 
     def testing_for_torr(self):
@@ -376,20 +379,23 @@ class ExecutionClass:
 
     def docking(self):
         self.done = False
-        self.test()
-        self.Camera.start_stereo_cam_L()
-        self.Camera.start_stereo_cam_R()  # TODO should be down camera
+        #self.Camera.start_stereo_cam_L()
+        #self.Camera.start_stereo_cam_R()  # TODO should be down camera
+        self.Camera.start_manipulator_cam()
+        self.Camera.start_down_cam()
         while not self.done and self.manual_flag.value == 0:
             # Needs stereo L, and Down Cameras
-            self.update_stereo_R()
-            self.update_stereo_L()  # TODO should be down camera
+            #self.update_stereo_R()
+            #self.update_stereo_L()  # TODO should be down camera
+            self.update_manipulator()
+            self.update_down()
             docking_frame, frame_under, driving_data_packet = self.Docking.run(
-                self.frame_stereoL, self.frame_stereoR
+                self.frame_manipulator, self.frame_down
             )  # TODO should be down camera
             self.show(docking_frame, "StereoL")
             self.show(frame_under, "Down")
             self.send_data_to_rov(driving_data_packet)
-            self.show(frame_under, "Frame Under")
+            #self.show(frame_under, "Frame Under")
         else:
             self.stop_everything()
 
@@ -423,17 +429,50 @@ class ExecutionClass:
     def show_3_cameras(self): # for testing purposes.
         self.done = False
         self.Camera.start_stereo_cam_L()
-        #self.Camera.start_down_cam()
-        #self.Camera.start_manipulator_cam()
+        self.Camera.start_down_cam()
+        self.Camera.start_manipulator_cam()
+        ####################################
+        # Create threads for each camera
+        #stereoL_thread = threading.Thread(target=self.camera_thread1)
+        down_thread = threading.Thread(target=self.camera_thread2, daemon=True)
+        manipulator_thread = threading.Thread(target=self.camera_thread3, daemon=True)
+
+        # Start the threads
+        #stereoL_thread.start()
+        down_thread.start()
+        manipulator_thread.start()
+        ####################################
         while not self.done:
-            self.update_stereo_L()
+            #self.update_stereo_L()
             #self.update_down()
             #self.update_manipulator()
-            self.show(self.frame_stereoL, "StereoL")
+            #self.show(self.frame_stereoL, "StereoL")
             #self.show(self.frame_down, "Down")
             #self.show(self.frame_manipulator, "Manipulator")
-            self.show(self.frame_stereoL, "Down")
-            self.show(self.frame_stereoL, "Manipulator")
+            ############### working code above #####################
+            time.sleep(0.5)
+            pass
+
+        # Wait for all threads to finish
+        #stereoL_thread.join()
+        down_thread.join()
+        manipulator_thread.join()
+    
+    def camera_thread1(self):
+        while not self.done:  # Check if stop event is set
+            print("-----_/(o.o)f-------")
+            self.update_stereo_L()  # Update the frame
+            self.show(self.frame_stereoL, "StereoL")
+
+    def camera_thread2(self):
+        while not self.done:  # Check if stop event is set
+            self.update_down()  # Update the frame
+            self.show(self.frame_down, "Down")
+
+    def camera_thread3(self):
+        while not self.done:  # Check if stop event is set
+            self.update_manipulator()  # Update the frame
+            self.show(self.frame_manipulator, "Manipulator")
 
     def stop_everything(self):
         print("Stopping other processes, returning to manual control")

@@ -82,10 +82,10 @@ def main():
     id = thread_watcher.add_thread()
     webrtc_server = WebRTCServer(frame_queue, mode_flag, log_queue)
 
-    webrtc_process = threading.Thread(
+    webrtc_thread = threading.Thread(
         target=webrtc_server.run, daemon=True)
     
-    webrtc_process.start()
+    webrtc_thread.start()
 
     def cleanup():
         print("\nShutting down safely...")
@@ -94,8 +94,7 @@ def main():
         websocket_server.stop_server()
         thread_watcher.stop_all_threads()
         webrtc_server.shutdown()
-        webrtc_process.terminate()  # Ensure WebRTC process stops
-        webrtc_process.join()
+        webrtc_thread.join()
 
     print("[Main] We got to the while loop in main")
 

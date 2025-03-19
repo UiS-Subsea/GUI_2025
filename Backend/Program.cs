@@ -35,31 +35,31 @@ builder.Services.AddCors(options =>
 
 // Add services to the container
 builder.Services.AddSingleton<ICommandQueueService<Dictionary<string, object>>, CommandQueueService<Dictionary<string, object>>>();
-builder.Services.AddSingleton<IROVController, RovController>();
-builder.Services.AddSingleton<IManiController, ManiController>();
-builder.Services.AddSingleton<WebSocketServer>(); // Singleton WebSocket server to handle connections
+builder.Services.AddSingleton<IModeService, ModeService>(); // "global variable" to tell backend what Drive Mode it is.
+builder.Services.AddSingleton<IROVController, RovController>(); // Handles input from ROV controller.
+builder.Services.AddSingleton<IManiController, ManiController>(); // Handles input from Manipulator Controller.
+builder.Services.AddSingleton<WebSocketServer>(); // Singleton WebSocket server to handle connections.
 
-builder.Services.AddSingleton<IGUITranslationLayer, GUITranslationLayer>();
-builder.Services.AddSingleton<IRovTranslationLayer, RovTranslationLayer>();
+builder.Services.AddSingleton<IGUITranslationLayer, GUITranslationLayer>(); // Translate data into GUI formate data.
+builder.Services.AddSingleton<IRovTranslationLayer, RovTranslationLayer>(); // Translate Generic command data into ROV format Data.
 builder.Services.AddSingleton<LoggerService>();  //Logging
 
 builder.Services.AddSingleton<PythonProcessManager>();
 builder.Services.AddHostedService<PythonProcessService>();
 
-builder.Services.AddSingleton<Network>();
-builder.Services.AddSingleton<INetworkClient>(sp => sp.GetRequiredService<Network>());
-builder.Services.AddSingleton<INetworkServer>(sp => sp.GetRequiredService<Network>());
+builder.Services.AddSingleton<Network>(); // Handles the Network connection to the ROV.
+builder.Services.AddSingleton<INetworkClient>(sp => sp.GetRequiredService<Network>()); // Sends the data to ROV
+builder.Services.AddSingleton<INetworkServer>(sp => sp.GetRequiredService<Network>()); // Receives Sensor Data from ROV.
 
 
-// Background Service that Dequeue Commands, Translate it, And Send it to ROV.
-// builder.Services.AddHostedService<RovCommandProcessor>();  //kommenter ut(testing husk å fjern kommentar)
-builder.Services.AddHostedService<SDL2PoolService>(); // Background Service that Collects Controller Input and Enqueue it
-// builder.Services.AddHostedService<DataProviderService>();  //kommenter ut(testing husk å fjern kommentar)
-builder.Services.AddHostedService<WebSocketBackgroundService>();
-builder.Services.AddHostedService<ZmqCommunicationService>();
+// Background Services:
+builder.Services.AddHostedService<RovCommandProcessor>(); // Service that Dequeue Commands, Translate it, And Send it to ROV.
+builder.Services.AddHostedService<SDL2PoolService>(); // Service that Collects Controller Input and Enqueue it.
+builder.Services.AddHostedService<DataProviderService>(); // Service that Translate and send it to GUI.
+builder.Services.AddHostedService<WebSocketBackgroundService>(); // Websocket that sends and receives data between Backend and Frontend.
+builder.Services.AddHostedService<ZmqCommunicationService>(); // Receives ROV controlling from the Python process and Enqueue it.
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -69,16 +69,13 @@ var app = builder.Build();
 app.UseWebSockets();  // Enable WebSockets in the app
 
 // Use CORS policy
-//app.UseCors("AllowAllOrigins");
 app.UseCors("AllowSpecificOrigins");
 
 
-// Configure the HTTP request pipeline.
 app.UseAuthorization();
 
 app.MapControllers();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

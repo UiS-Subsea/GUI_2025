@@ -1,6 +1,5 @@
 import asyncio
 import time
-import cv2
 from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack
 from av import VideoFrame
 from aiohttp import web
@@ -25,23 +24,39 @@ class WebRTCServer:
             self.frame_queue = frame_queue
             self.active_flag = active_flag
             self.nr = nr
+            self.last_time = time.time()  # For FPS calculation
+            self.frame_count = 0  # To count the number of frames
+            self.fps = 0  # To store the calculated FPS
 
         async def recv(self):
             while True:
                 if not self.active_flag.value:
-                    await asyncio.sleep(0.2)
+                    await asyncio.sleep(0.5)
                     continue
             
                 if self.frame_queue.empty():
                     #print(f"Empty Queue Nr: {self.nr:.2f}")
-                    await asyncio.sleep(0.05)
+                    await asyncio.sleep(0.01)
                     continue
+
+                # Track the time before getting the frame
+                current_time = time.time()
 
                 pts, time_base = await self.next_timestamp()
 
                 frame = self.frame_queue.get()
 
-                frame = cv2.resize(frame, (640, 480))  # width, height
+                # Calculate FPS (every 1 second)
+                self.frame_count += 1
+                time_diff = current_time - self.last_time
+
+                if time_diff >= 1.0:  # If 1 second has passed
+                    self.fps = self.frame_count / time_diff
+                    self.frame_count = 0  # Reset the frame counter
+                    self.last_time = current_time  # Reset the time
+                    print(f"FPS: {self.fps:.2f}")
+
+                #frame = cv2.resize(frame, (640, 480))  # width, height
                 #frame = cv2.resize(frame, (320, 180))  # width, height
                 #frame = cv2.resize(frame, (1280, 720))  # width, height
                 #frame = cv2.resize(frame, (1920, 1080))  # width, height

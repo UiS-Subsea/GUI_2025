@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Button } from '../Button';
-import { useWebSocketCommand } from '../../../../WebSocketManager'; // new line
+import { useWebSocketCommand } from '../../../../WebSocketManager';
+import { WebSocketContext } from '../../../../WebSocketProvider';
 
 export const DriveMode = () => {
   const ws = useWebSocketCommand(); // Get WebSocketManager instance
+  const { sendMessage } = useContext(WebSocketContext);
 
   const sendManualCommand = () => {
     if (ws) {
       ws.sendCommand('START_MANUAL'); // Send "manual" command
+      sendMessage({ Mode: 'MANUAL' }); // Send mode message to .NET backend
     } else {
       console.log('WebSocket is not connected.');
     }
@@ -16,6 +19,7 @@ export const DriveMode = () => {
   const sendDockingCommand = () => {
     if (ws) {
       ws.sendCommand('START_DOCKING'); // Send "docking" command
+      sendMessage({ Mode: 'AUTO' });
     } else {
       console.log('WebSocket is not connected.');
     }
@@ -24,6 +28,7 @@ export const DriveMode = () => {
   const sendTransectCommand = () => {
     if (ws) {
       ws.sendCommand('START_TRANSECT'); // Send "docking" command
+      sendMessage({ Mode: 'AUTO' });
     } else {
       console.log('WebSocket is not connected.');
     }
