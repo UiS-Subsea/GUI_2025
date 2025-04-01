@@ -40,7 +40,7 @@ const ErrorPopup: React.FC<{
             onClose();
           }}
         >
-          Acknowledge
+          Close
         </button>
       </div>
     </div>
