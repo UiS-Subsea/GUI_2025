@@ -1,11 +1,18 @@
 using System.Text;
 using System.Text.Json;
+using Backend.Infrastructure.Interface;
 
 namespace Backend.Translation
 {  
-    public class GUITranslationLayer
+    public class GUITranslationLayer : IGUITranslationLayer
     {
+        private readonly ILogger<GUITranslationLayer> _logger;
         private string _incompletePacket = ""; // Store unfinished packets
+
+        public GUITranslationLayer(ILogger<GUITranslationLayer> logger)
+        {
+            _logger = logger;
+        }
 
         public List<object> DecodeAndTranslatePackets(byte[] tcpData)
         {
@@ -13,24 +20,31 @@ namespace Backend.Translation
 
             try
             {
-                string dataStr = _incompletePacket + Encoding.UTF8.GetString(tcpData);
+                string dataStr = _incompletePacket + Encoding.UTF8.GetString(tcpData); // From bytes to string.
                 _incompletePacket = "";
 
-                if (!dataStr.StartsWith("\"*\"")) return translatedPackets;
-                if (!dataStr.EndsWith("\"*\""))
+                if (!dataStr.StartsWith("\"*\""))
+                {
+                    _logger.LogWarning("Received malformed packet: {Packet}", dataStr);
+                    return translatedPackets;
+                }
+                if (!dataStr.EndsWith("\"*\"")) // checks if it ends with "*", if not the last packet is incomplete.
                 {
                     int lastStarIndex = dataStr.LastIndexOf("\"*\"");
-                    _incompletePacket = dataStr.Substring(lastStarIndex);
-                    dataStr = dataStr.Substring(0, lastStarIndex);
+                    _incompletePacket = dataStr.Substring(lastStarIndex); // Stores incomplete packet.
+                    dataStr = dataStr.Substring(0, lastStarIndex); // Removes incomplete packet from string.
                 }
 
-                string[] jsonStrings = dataStr.Split("\"*\"", StringSplitOptions.RemoveEmptyEntries);
+                string[] jsonStrings = dataStr.Split("\"*\"", StringSplitOptions.RemoveEmptyEntries); //Splits each packet into an string entry in list.
 
                 foreach (string packet in jsonStrings)
                 {
                     try
                     {
-                        if (packet.Contains("Error") || packet.Contains("Info") || packet.Contains("Alarm")) continue;
+                        // Packets that are not supposed to be handled.
+                        if (packet.Contains("Error") || packet.Contains("Info") || packet.Contains("Alarm") || packet.Contains("heartbeat") || packet.Contains("polo")) {
+                            continue;
+                        }
 
                         var parsedJson = JsonSerializer.Deserialize<Dictionary<int, JsonElement>>(packet);
                         if (parsedJson == null || parsedJson.Count == 0) continue;
@@ -49,13 +63,22 @@ namespace Backend.Translation
                     }
                     catch (JsonException ex)
                     {
-                        Console.WriteLine($"JSON Parsing Error: {ex.Message}, Packet: {packet}");
+                        _logger.LogError(ex, "Invalid JSON format in TCP packet. Packet content: {Packet}", packet);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Unexpected error while processing a packet. Packet content: {Packet}", packet);
                     }
                 }
             }
+            catch (OutOfMemoryException ex)
+            {
+                _logger.LogCritical(ex, "System is running out of memory while decoding TCP data! Consider optimizing memory usage.");
+                throw; // Let the application handle critical failures.
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error decoding TCP data: {ex.Message}");
+                _logger.LogError(ex, "Unexpected error while decoding TCP data.");
             }
 
             return translatedPackets;
@@ -220,7 +243,7 @@ namespace Backend.Translation
             {
                 JsonValueKind.Number => element.TryGetInt32(out int intValue) ? intValue : element.GetDouble(),
                 JsonValueKind.True or JsonValueKind.False => element.GetBoolean(),
-                JsonValueKind.String => element.GetString(),
+                JsonValueKind.String => element.GetString()?? string.Empty,
                 _ => throw new Exception($"Unhandled JSON type: {element.ValueKind}")
             };
         }

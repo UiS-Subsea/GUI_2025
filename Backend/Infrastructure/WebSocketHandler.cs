@@ -3,6 +3,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Collections.Concurrent;
+using Backend.Infrastructure.Interface;
 
 namespace Backend.Infrastructure
 {
@@ -11,21 +12,21 @@ namespace Backend.Infrastructure
         // Stores connected clients using a thread-safe dictionary.
         // The dictionary key is the WebSocket instance, and the value is a placeholder byte (not used).
         private readonly ConcurrentDictionary<WebSocket, byte> _connectedClients = new();
-
-        // HTTP listener to accept WebSocket requests
-        private readonly HttpListener _httpListener;
+        private readonly HttpListener _httpListener; // HTTP listener to accept WebSocket requests
         private readonly int _port;
         private readonly ILogger<WebSocketServer> _logger;
+        private readonly IModeService _modeService;
 
         /// <summary>
         /// Initializes a new WebSocket server instance on the specified port.
         /// </summary>
         /// <param name="port">The port on which the server should listen for WebSocket connections.</param>
-        public WebSocketServer(ILogger<WebSocketServer> logger, int port = 5000)
+        public WebSocketServer(ILogger<WebSocketServer> logger, IModeService modeService, int port = 5009)
         {
             _port = port;
             _httpListener = new HttpListener();
             _logger = logger;
+            _modeService = modeService;
 
             // WebSocket connections will be accepted at ws://localhost:{port}/ws/
             _httpListener.Prefixes.Add($"http://localhost:{_port}/ws/");
@@ -44,16 +45,16 @@ namespace Backend.Infrastructure
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    // Wait for either a new connection or cancellation
+                    // Wait for either a new connection or cancellation.
                     var contextTask = _httpListener.GetContextAsync();
                     var timeoutTask = Task.Delay(Timeout.Infinite, cancellationToken); // Wait indefinitely for cancellation
                     var completedTask = await Task.WhenAny(contextTask, timeoutTask); // Wait for either of them to complete
 
                     if (completedTask == contextTask)
                     {
-                        var context = await contextTask; // The incoming WebSocket request
+                        var context = await contextTask; // The incoming WebSocket request.
 
-                        if (context.Request.IsWebSocketRequest)
+                        if (context.Request.IsWebSocketRequest) // Checks if it is a Websocket request.
                         {
                             var wsContext = await context.AcceptWebSocketAsync(null);
                             var webSocket = wsContext.WebSocket;
@@ -81,6 +82,7 @@ namespace Backend.Infrastructure
             }
             catch (Exception ex) when (cancellationToken.IsCancellationRequested)
             {
+                _logger.LogError("WebSocket Server Error:" + ex.Message, ex);
                 _logger.LogInformation("WebSocket Server shutting down...");
             }
             finally
@@ -118,6 +120,39 @@ namespace Backend.Infrastructure
                     // Convert received bytes into a string message
                     string receivedMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
                     _logger.LogInformation($"Received: {receivedMessage}");
+
+                    // Deserialize the received JSON string into an object
+                    try
+                    {
+                        var messageObject = JsonSerializer.Deserialize<Dictionary<string, string>>(receivedMessage);
+
+                        // Check if the Mode key exists and handle accordingly
+                        if (messageObject != null && messageObject.ContainsKey("Mode"))
+                        {
+                            string mode = messageObject["Mode"];
+
+                            if (mode == "MANUAL") // 0 for Manual
+                            {
+                                _modeService.SetModeToManual();
+                            }
+                            else if (mode == "AUTO") // 1 for Autonomous
+                            {
+                                _modeService.SetModeToAutonomous();
+                            }
+                            else
+                            {
+                                _logger.LogWarning($"Unrecognized mode value: {mode}");
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Received message does not contain 'Mode' key.");
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError($"Error deserializing message: {ex.Message}");
+                    }
                 }
             }
             catch (Exception ex)

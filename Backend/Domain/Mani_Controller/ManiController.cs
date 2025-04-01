@@ -1,13 +1,15 @@
+using Backend.Infrastructure.Interface;
 using SDL2;
 
 namespace Backend.Domain.Mani_Controller
 {
-    public class ManiController
+    public class ManiController : IManiController
     {
 
+        private readonly ILogger<ManiController> _logger;
         private IntPtr JoystickPtr; 
         private int joystickIndex = 1; // The Second Joystick Becomes Manipulator-Controller.
-        private Guid joystickGUID; // Store The Xbox One Controllers GUID, For reconnecting The Same Controller.
+        private int JoystickId; // Store The Xbox One Controllers InstanceID, For reconnecting The Same Controller.
         public bool IsConnected => JoystickPtr != IntPtr.Zero && SDL.SDL_JoystickGetAttached(JoystickPtr) == SDL.SDL_bool.SDL_TRUE;
 
         private const int joystickDeadzone = 15; // The deadzone Value.
@@ -18,27 +20,30 @@ namespace Backend.Domain.Mani_Controller
         private int[] mani_axis = new int[7]; // Store joystick axis states in [x, y, z, rotation, 0, 0, 0, 0].
         private (int x, int y) mani_dpad = (0, 0);
 
-        public ManiController() {}
+        public ManiController(ILogger<ManiController> logger)
+        {
+            _logger = logger;
+        }
 
         public void InitializeJoystick()
         {
             if (SDL.SDL_NumJoysticks() <= 0)
             {
-                Console.WriteLine($"There are no Joystick available/connected.");
+                _logger.LogWarning($"There are no Joystick available/connected.");
                 return;
             }
             JoystickPtr = SDL.SDL_JoystickOpen(joystickIndex);
             if (JoystickPtr == IntPtr.Zero)
             {
-                Console.WriteLine("Manipulator Joystick not found!");
+                _logger.LogWarning("Manipulator Joystick not found!");
             }
             else
             {
-                // Convert SDL_JoystickGUID to a System.Guid
-                joystickGUID = SDL.SDL_JoystickGetDeviceGUID(joystickIndex);
-                Console.WriteLine($"Joystick {joystickIndex} connected. (GUID: {joystickGUID})");
+                // Finds the Instance ID and stores it.
+                JoystickId = SDL.SDL_JoystickInstanceID(JoystickPtr);
+                _logger.LogInformation($"Mani Joystick InstanceID:  {JoystickId} connected.");
             }
-            Console.WriteLine("There are: " + SDL.SDL_NumJoysticks() + "  Controllers");
+            _logger.LogInformation("There are: " + SDL.SDL_NumJoysticks() + "  Controllers");
         }
 
         public bool CheckJoystickConnection()
@@ -46,19 +51,19 @@ namespace Backend.Domain.Mani_Controller
             // Check if joystick is still attached and matches the expected instance ID
             if (!IsConnected)
             {
-                Console.WriteLine("Joystick disconnected. Reconnecting...");
+                _logger.LogInformation("Joystick disconnected. Reconnecting...");
                 for (int i = 0; i < SDL.SDL_NumJoysticks(); i++)
                 {
-                    Guid newGUID = SDL.SDL_JoystickGetDeviceGUID(i);
-                    if (joystickGUID == newGUID)
+                    int newInstanceID = SDL.SDL_JoystickGetDeviceInstanceID(i);
+                    if (JoystickId == newInstanceID)
                     {
                         joystickIndex = i;
                         InitializeJoystick();
-                        Console.WriteLine($"Reconnected joystick with matching GUID at index {i}");
+                        _logger.LogInformation($"Reconnected joystick with matching InstanceID at index {i}");
                         return true;
                     }
                 }
-                Console.WriteLine("No matching joystick found. Waiting for reconnection...");
+                _logger.LogInformation("No matching joystick found. Waiting for reconnection...");
                 return false;
             }
             return true;
@@ -69,7 +74,7 @@ namespace Backend.Domain.Mani_Controller
             // Early exit if cancellation is requested
             if (cancellationToken.IsCancellationRequested)
             {
-                Console.WriteLine("Event processing canceled.");
+                _logger.LogInformation("Event processing canceled.");
                 return false;  // Indicate that event processing was canceled
             }
 
@@ -120,15 +125,15 @@ namespace Backend.Domain.Mani_Controller
 
             switch (e.jbutton.button)
             {
-                case 0: Console.WriteLine($"Button A {(buttonState == 1 ? "pressed" : "released")}"); break;
-                case 1: Console.WriteLine($"Button B {(buttonState == 1 ? "pressed" : "released")}"); break;
-                case 2: Console.WriteLine($"Button X {(buttonState == 1 ? "pressed" : "released")}"); break;
-                case 3: Console.WriteLine($"Button Y {(buttonState == 1 ? "pressed" : "released")}"); break;
-                case 4: Console.WriteLine($"LB {(buttonState == 1 ? "pressed" : "released")}"); break;
-                case 5: Console.WriteLine($"RB {(buttonState == 1 ? "pressed" : "released")}"); break;
-                case 8: Console.WriteLine($"Left Joystick Press {(buttonState == 1 ? "pressed" : "released")}"); break;
-                case 9: Console.WriteLine($"Right Joystick Press {(buttonState == 1 ? "pressed" : "released")}"); break;
-                default: Console.WriteLine($"Unknown button {e.jbutton.button} {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 0: _logger.LogDebug($"Button A {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 1: _logger.LogDebug($"Button B {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 2: _logger.LogDebug($"Button X {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 3: _logger.LogDebug($"Button Y {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 4: _logger.LogDebug($"LB {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 5: _logger.LogDebug($"RB {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 8: _logger.LogDebug($"Left Joystick Press {(buttonState == 1 ? "pressed" : "released")}"); break;
+                case 9: _logger.LogDebug($"Right Joystick Press {(buttonState == 1 ? "pressed" : "released")}"); break;
+                default: _logger.LogDebug($"Unknown button {e.jbutton.button} {(buttonState == 1 ? "pressed" : "released")}"); break;
             }
             mani_buttons[15] = mani_buttons[11] - mani_buttons[12];
         }
@@ -154,7 +159,7 @@ namespace Backend.Domain.Mani_Controller
             // Update the stored D-pad state
             mani_dpad = (x, y);
 
-            Console.WriteLine($"D-pad Position: {mani_dpad}");
+            _logger.LogDebug($"D-pad Position: {mani_dpad}");
         }
 
 
@@ -173,9 +178,9 @@ namespace Backend.Domain.Mani_Controller
                 int normalizedValue = NormalizeJoystick(axisIndex, axisValue);
                 UpdateAxis(axisIndex, normalizedValue);
 
-                mani_axis[6] = mani_axis[5] - mani_axis[4];
+                mani_axis[6] = mani_axis[5] - mani_axis[2];
 
-                Console.WriteLine("Mani Axis: " + string.Join(", ", mani_axis));
+                _logger.LogDebug("Mani Axis: " + string.Join(", ", mani_axis));
             }
         }
         // Update the mani_axis array based on axis index

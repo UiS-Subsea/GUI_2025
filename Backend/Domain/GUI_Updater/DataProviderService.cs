@@ -13,9 +13,9 @@ namespace Backend.Domain.GUI_Updater
         private readonly ILogger<DataProviderService> _logger;     // Logger for logging information and errors
         private readonly WebSocketServer _webSocketServer;          // WebSocket server instance to communicate with frontend
         private readonly INetworkServer _serverNetwork;             // Network object to manage TCP connection with the ROV
-        private readonly GUITranslationLayer _gUITranslationLayer;
+        private readonly IGUITranslationLayer _gUITranslationLayer;
 
-        public DataProviderService(ILogger<DataProviderService> logger, WebSocketServer webSocketServer, INetworkServer serverNetwork, GUITranslationLayer gUITranslationLayer)
+        public DataProviderService(ILogger<DataProviderService> logger, WebSocketServer webSocketServer, INetworkServer serverNetwork, IGUITranslationLayer gUITranslationLayer)
         {
             _serverNetwork = serverNetwork;
             _sensorDataReader = _serverNetwork.SensorData;  // Get the channel to read incoming sensor data
@@ -69,14 +69,10 @@ namespace Backend.Domain.GUI_Updater
                         stoppingToken.ThrowIfCancellationRequested();  // Stop processing if service is shutting down
 
 
-                        string decodedMessage = Encoding.UTF8.GetString(sensorData);
-                        _logger.LogInformation($"Received Raw Data: {decodedMessage}");
+                        string decodedMessage = Encoding.UTF8.GetString(sensorData); // Decode messages into string.
+                        _logger.LogDebug($"Received Raw Data: {decodedMessage}");
 
                         List<Object> translatedData = _gUITranslationLayer.DecodeAndTranslatePackets(sensorData);
-                        if (translatedData.Count > 0)
-                        {
-                            _logger.LogInformation($"Sending Sensor Data to WebSocket: {translatedData[0]}");
-                        }
 
                         // Send data to WebSocket clients and handle cancellation correctly
                         await _webSocketServer.SendToAllClientsAsync(translatedData, stoppingToken);
@@ -93,7 +89,6 @@ namespace Backend.Domain.GUI_Updater
                     await Task.Delay(1000, stoppingToken);  // Wait before retrying
                 }
             }
-            _logger.LogError("it has exited the loop!!!!!!!!");
         }
     }
 }

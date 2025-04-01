@@ -1,9 +1,10 @@
 using System.Threading.Channels;
+using Backend.Infrastructure.Interface;
 
 namespace Backend.Infrastructure
 {
 
-    public class CommandQueueService<T>
+    public class CommandQueueService<T> : ICommandQueueService<T>
     {
         private readonly Channel<T> _channel;
         private readonly ILogger<CommandQueueService<T>> _logger;
@@ -21,22 +22,22 @@ namespace Backend.Infrastructure
 
         // Enqueue a command (Producer)
         public async Task<bool> EnqueueAsync(T command, CancellationToken cancellationToken = default)
-    {
-        try
         {
-            if (await _channel.Writer.WaitToWriteAsync(cancellationToken))
+            try
             {
-                await _channel.Writer.WriteAsync(command, cancellationToken);
-                return true;
+                if (await _channel.Writer.WaitToWriteAsync(cancellationToken))
+                {
+                    await _channel.Writer.WriteAsync(command, cancellationToken);
+                    return true;
+                }
+                return false;
             }
-            return false;
+            catch (Exception ex)
+            {
+                _logger.LogError($"Queue enqueue error: {ex.Message}");
+                return false;
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Queue enqueue error: {ex.Message}");
-            return false;
-        }
-    }
 
         // Dequeue commands (Consumer)
         public async Task<T?> DequeueAsync(CancellationToken cancellationToken = default)

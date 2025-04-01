@@ -1,10 +1,16 @@
-# Visual Studio and VS Code settings
-.vscode/
+# User-specific files
 .vs/
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
+.vscode/
+.idea/
+*.swp
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# MacOS files
+.DS_Store
 
 # Build output
 bin/
@@ -15,8 +21,6 @@ out/
 *.pdb
 *.cache
 *.ilk
-*.ilk
-*.pdb
 *.rsp
 *.sbr
 *.tlog
@@ -84,17 +88,24 @@ docker-compose.override.yml
 **/docker-compose.*.yml
 .dockerignore
 
+# AWS Lambda or Serverless-related temporary files
+.sls/
+
 # JetBrains Rider
 .idea/
 
-# MacOS files
+# User-specific files
+.vs/
+.idea/
+*.swp
+
+# Mac-specific files
 .DS_Store
 
-# Windows files
-Thumbs.db
-ehthumbs.db
-desktop.ini
+# Ignore virtual environment directories
+myenv/
 
-# Linux files
-*.swp
-*.swo
+# Ignore python compiled code
+*.pyc
+*.pyo
+__pycache__/

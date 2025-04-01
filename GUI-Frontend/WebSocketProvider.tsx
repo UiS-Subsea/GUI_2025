@@ -2,7 +2,7 @@ import exp from 'node:constants';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 // Create a WebSocket context to share the sensor data with components
-const WebSocketContext = createContext<any>(null);
+export const WebSocketContext = createContext<any>(null);
 
 // WebSocketProvider component: Wraps the application to provide WebSocket data
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -109,12 +109,27 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     },
   });
 
+  // Function to send a message to the backend via WebSocket
+  const sendMessage = (message: object) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(message));
+      console.log('Message sent:', message);
+    } else {
+      console.warn('WebSocket is not connected');
+    }
+  };
+
   // Effect hook to establish the WebSocket connection when the component mounts
   useEffect(() => {
     // Function to create and connect the WebSocket.
     const connectWebSocket = () => {
       // Initialize the WebSocket connection
-      socketRef.current = new WebSocket('ws://localhost:5000/ws');
+      socketRef.current = new WebSocket('ws://localhost:5009/ws');
+
+      // WebSocket connection open event handler: Triggered when the connection is established
+      socketRef.current.onopen = () => {
+        console.log('WebSocket connected to ws://localhost:5009/ws'); // Log when the connection is established
+      };
 
       // WebSocket message event handler: Triggered when data is received from the server
       socketRef.current.onmessage = (event) => {
@@ -195,7 +210,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   return (
     // Provide the sensor data to the context, so any child component can access it
-    <WebSocketContext.Provider value={{ sensorData }}>
+    <WebSocketContext.Provider value={{ sensorData, sendMessage }}>
       {children} {/* Render child components that will have access to the context */}
     </WebSocketContext.Provider>
   );

@@ -7,23 +7,18 @@ namespace Backend.Domain.ROV_Sender
 {
     public class RovCommandProcessor : BackgroundService
     {
-        private readonly CommandQueueService<Dictionary<string, object>> _commandQueue;
+        private readonly ICommandQueueService<Dictionary<string, object>> _commandQueue;
         private readonly ILogger<RovCommandProcessor> _logger;
         private readonly INetworkClient _clientNetwork;
-        private readonly RovTranslationLayer _rovTranslationLayer;
-        private int _packetCount = 0;
-        private Stopwatch _stopwatch = new Stopwatch();
+        private readonly IRovTranslationLayer _rovTranslationLayer;
+        private int _packetCount = 0; // For Debugging to monitoring Packets per second.
 
-        public RovCommandProcessor(CommandQueueService<Dictionary<string, object>> commandQueue, ILogger<RovCommandProcessor> logger, INetworkClient clientNetwork, RovTranslationLayer rovTranslation)
+        public RovCommandProcessor(ICommandQueueService<Dictionary<string, object>> commandQueue, ILogger<RovCommandProcessor> logger, INetworkClient clientNetwork, IRovTranslationLayer rovTranslation)
         {
-            _commandQueue = commandQueue;
+            _commandQueue = commandQueue; //Internal Queue containing the generic commands from other services.
             _logger = logger;
-            _rovTranslationLayer = rovTranslation;
-
-            //string host = config["RovSettings:Host"] ?? "0.0.0.0";
-            //int port = int.Parse(config["RovSettings:Port"] ?? "5000");
-            //_network = new Network(networklogger, isServer: false, connectIP: host, port: port); // Clint MODE
-            _clientNetwork = clientNetwork;
+            _rovTranslationLayer = rovTranslation; // Translate Generic commands to ROV specific commands.
+            _clientNetwork = clientNetwork; // The network class in CLient mode (for sending)
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -38,7 +33,7 @@ namespace Backend.Domain.ROV_Sender
                 return; // Exit early if shutdown is requested
             }
 
-            _stopwatch.Start();
+            var lastCheck = DateTime.UtcNow;
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -54,21 +49,23 @@ namespace Backend.Domain.ROV_Sender
                             _logger.LogDebug("Queue Delay: {Delay} ms", delay.TotalMilliseconds);
                         }
 
-                        var Translatedcommand = _rovTranslationLayer.Translate(command);
-                        _logger.LogInformation($"Translation: {Translatedcommand}");
-                        await _clientNetwork.SendAsync(Translatedcommand, stoppingToken); // Use shared network instance
+                        var ROVData = _rovTranslationLayer.Translate(command);
+                        _logger.LogDebug($"Translation: {ROVData}");
+                        await _clientNetwork.SendAsync(ROVData, stoppingToken); // Use shared network instance
 
                         _packetCount++;
                     }
                     
-                    if (_stopwatch.ElapsedMilliseconds >= 1000)
+                    // Check packets per second every second
+                    var now = DateTime.UtcNow;
+                    if ((now - lastCheck).TotalMilliseconds >= 1000)
                     {
-                        _logger.LogInformation("Packets per second: {PPS}", _packetCount);
+                        _logger.LogDebug("Packets per second: {PPS}", _packetCount);
                         _packetCount = 0;
-                        _stopwatch.Restart();
+                        lastCheck = now;
                     }
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                     _logger.LogInformation("Command processing was canceled. Exiting...");
                     break; // Stop processing when shutdown is requested

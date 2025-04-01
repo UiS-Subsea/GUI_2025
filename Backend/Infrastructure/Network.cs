@@ -14,9 +14,9 @@ namespace Backend.Infrastructure
         private readonly ILogger<Network> _logger;
         private TcpClient? _client;
         private NetworkStream? _stream;
-        private readonly TimeSpan _heartbeatInterval = TimeSpan.FromMilliseconds(300);
+        private readonly TimeSpan _heartbeatInterval = TimeSpan.FromMilliseconds(300); // how often a heartbeat messages is sent.
         private bool _running = true;
-        private bool _isStarted = false;
+        private bool _isStarted = false; // boolean telling is Network is started.
 
         // Property to check if the connection is active
         public bool IsConnected => _running && _client?.Connected == true;
@@ -87,32 +87,44 @@ namespace Backend.Infrastructure
         /// </summary>
         private async Task ReadLoop(CancellationToken cancellationToken)
         {
-            if (_stream == null) return;
+            if (_stream == null)// If there is no stream, there is nothing to read so it returns.
+            {
+                _logger.LogWarning("ReadLoop exited: No stream available.");
+                return;
+            }
 
             byte[] buffer = new byte[1024];
 
-            while (!cancellationToken.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                    if (bytesRead == 0) break;  // Client disconnected
 
-                    byte[] receivedBytes = new byte[bytesRead];
-                    Array.Copy(buffer, receivedBytes, bytesRead); // Copy only the received data
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                        if (bytesRead == 0) break;  // Client disconnected
 
-                    await _sensorDataChannel.Writer.WriteAsync(receivedBytes, cancellationToken); // Push data to channel
+                        byte[] receivedBytes = new byte[bytesRead];
+                        Array.Copy(buffer, receivedBytes, bytesRead); // Copy only the received data
+
+                        await _sensorDataChannel.Writer.WriteAsync(receivedBytes, cancellationToken); // Push data to channel
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _logger.LogInformation("ReadLoop shutting down due to cancellation.");
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"Error reading data: {ex.Message}");
+                        await ReconnectAsync(cancellationToken);
+                    }
                 }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("Reading loop canceled.");
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Error reading data: {ex.Message}");
-                    await ReconnectAsync(cancellationToken);
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                 _logger.LogInformation("ReadLoop exited gracefully.");
             }
         }
 
@@ -128,19 +140,20 @@ namespace Backend.Infrastructure
                 // Check if the data is a List<Dictionary<int, object>>
                 if (data is List<object> listData)
                 {
-                    // Wrap each dictionary inside "*"
-                    var formattedData = listData.Select(dict => $"\"*\"{JsonSerializer.Serialize(dict)}\"*\"").ToList();
+                    // Wrap each dictionary inside "*" and Serialize the modified list.
+                    var formattedData = listData.Select(dict => $"\"*\"[{JsonSerializer.Serialize(dict)}]\"*\"").ToList();
 
-                    // Serialize the modified list
-                    string jsonMessage = JsonSerializer.Serialize(formattedData);
+                    // Concat the list into one single Json String.
+                    string jsonMessage = string.Concat(formattedData);
+                    _logger.LogDebug("Sending Comand String: " + jsonMessage);
+
                     byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonMessage);
-                    await _stream.WriteAsync(jsonBytes, cancellationToken);
+                    await _stream.WriteAsync(jsonBytes, cancellationToken); // Sends the data.
                 }
-                else if (data is string stringData && stringData == "\"*\"heartbeat\"*\"")
+                else if (data is string stringData && stringData == "\"*\"\"heartbeat\"\"*\"") // For Sending the Heartbeat
                 {
                     // If it's the heartbeat string, send it directly
-                    var jsonHeartbeat = JsonSerializer.Serialize(stringData);
-                    byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonHeartbeat);
+                    byte[] jsonBytes = Encoding.UTF8.GetBytes(stringData);
                     await _stream.WriteAsync(jsonBytes, cancellationToken);
                 }
                 else
@@ -161,18 +174,30 @@ namespace Backend.Infrastructure
         /// </summary>
         private async Task HeartbeatLoop(CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            try
             {
-                try
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    await Task.Delay(_heartbeatInterval, cancellationToken);
-                    var heartbeatData = "\"*\"heartbeat\"*\"";
-                    await SendAsync(heartbeatData, cancellationToken);
+                    try
+                    {
+                        await Task.Delay(_heartbeatInterval, cancellationToken);
+                        var heartbeatData = "\"*\"\"heartbeat\"\"*\"";
+                        await SendAsync(heartbeatData, cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _logger.LogInformation("HeartbeatLoop shutting down due to cancellation.");
+                        throw; // Re-throw to exit loop if needed
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Heartbeat failed.");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Heartbeat failed: {ex.Message}");
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("HeartbeatLoop exited gracefully.");
             }
         }
 

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
+using Backend.Infrastructure.Interface;
+using System.Collections.Concurrent;
 
 namespace Backend.Domain.API
 {
@@ -13,10 +15,10 @@ namespace Backend.Domain.API
     [Route("api/rov")]
     public class RovController : ControllerBase
     {
-        private readonly CommandQueueService<Dictionary<string, object>> _commandQueueService;
+        private readonly ICommandQueueService<Dictionary<string, object>> _commandQueueService;
         private readonly LoggerService _loggerService;
 
-        public RovController(CommandQueueService<Dictionary<string, object>> commandQueueService, LoggerService loggerService)
+        public RovController(ICommandQueueService<Dictionary<string, object>> commandQueueService, LoggerService loggerService)
         {
             _commandQueueService = commandQueueService;
             _loggerService = loggerService;
@@ -164,7 +166,7 @@ namespace Backend.Domain.API
             return Ok($"ROV is {status}.");
         }
 
-        private static Dictionary<string, string> LastTemperatureStatus = new Dictionary<string, string>();
+        private static ConcurrentDictionary<string, string> LastTemperatureStatus = new ConcurrentDictionary<string, string>();
         [HttpPost("TemperatureLog")]
         public IActionResult LogTemperature([FromBody] TemperatureStatusCommand temperatureData)
         {
