@@ -1,7 +1,5 @@
 import threading
 import time
-
-import numpy as np
 from camerafeed.Main_Classes.autonomous_transect_main import AutonomousTransect
 from camerafeed.Main_Classes.grass_monitor_main import SeagrassMonitor
 from camerafeed.Main_Classes.autonomous_docking_main import AutonomousDocking
@@ -276,25 +274,21 @@ class ExecutionClass:
             # Check if the queue is full and remove the oldest item if necessary
             if self.stereo_left_queue.full():
                 self.stereo_left_queue.get()  # Remove the oldest item to make space
- 
             self.stereo_left_queue.put(frame)
 
         elif name == "StereoR":
             if self.stereo_right_queue.full():
                 self.stereo_right_queue.get()  # Remove the oldest item to make space
-
             self.stereo_right_queue.put(frame)
 
         elif name == "Down":
             if self.down_queue.full():
                 self.down_queue.get()
-
             self.down_queue.put(frame)
 
         elif name == "Manipulator":
             if self.manipulator_queue.full():
                 self.manipulator_queue.get()
-
             self.manipulator_queue.put(frame)
 
         else:
@@ -365,16 +359,12 @@ class ExecutionClass:
 
     def docking(self):
         self.done = False
-        #self.Camera.start_stereo_cam_L()
-        #self.Camera.start_stereo_cam_R()  # TODO should be down camera
         self.Camera.start_down_cam()
         self.Camera.start_manipulator_cam()
         while not self.done and self.manual_flag.value == 0:
-            # Needs stereo L, and Down Cameras
-            #self.update_stereo_R()
-            #self.update_stereo_L()  # TODO should be down camera
+            # Needs manipulator L, and Down Cameras
             self.update_manipulator()
-            self.update_down()  # Done should be down camera
+            self.update_down()
             docking_frame, frame_under, driving_data_packet = self.Docking.run(
                 self.frame_manipulator, self.frame_down
             )  # TODO should be down camera
@@ -418,7 +408,7 @@ class ExecutionClass:
             self.show(self.frame_down, "Down")
             self.show(self.frame_manipulator, "Manipulator")
 
-    def show_manual_cameras(self): # for testing purposes.
+    def show_manual_cameras(self): # The streams when in manual mode.
         self.done = False
         #self.Camera.start_stereo_cam_L()
         #self.Camera.start_stereo_cam_R()
@@ -426,35 +416,35 @@ class ExecutionClass:
         self.Camera.start_manipulator_cam()
 
         # Create threads for each camera
-        down_thread = threading.Thread(target=self.camera_thread1, daemon=True)
-        manipulator_thread = threading.Thread(target=self.camera_thread2, daemon=True)
+        down_thread = threading.Thread(target=self.camera_thread_down, daemon=True)
+        manipulator_thread = threading.Thread(target=self.camera_thread_manipulator, daemon=True)
 
         # Start the threads
         down_thread.start()
         manipulator_thread.start()
- 
+        # wait for both threads to finish before exiting method
         down_thread.join()
         manipulator_thread.join()
 
-    def camera_thread1(self):
+    def camera_thread_down(self):
         while not self.done:  # Check if stop event is set
             self.update_down()  # Update the frame
             self.show(self.frame_down, "Down")
             time.sleep(0.01) # check to find ideal sleep time.
 
-    def camera_thread2(self):
+    def camera_thread_manipulator(self):
         while not self.done:  # Check if stop event is set
             self.update_manipulator()  # Update the frame
             self.show(self.frame_manipulator, "Manipulator")
             time.sleep(0.01)
 
-    def camera_thread3(self):
+    def camera_thread_stereoL(self):
         while not self.done:  # Check if stop event is set
             self.update_stereo_L()  # Update the frame
             self.show(self.frame_stereoL, "StereoL")
             time.sleep(0.01) # check to find ideal sleep time.
 
-    def camera_thread4(self):
+    def camera_thread_stereoR(self):
         while not self.done:  # Check if stop event is set
             self.update_stereo_R()  # Update the frame
             self.show(self.frame_stereoR, "StereoR")

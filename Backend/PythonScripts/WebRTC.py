@@ -10,10 +10,9 @@ import multiprocessing
 
 
 class WebRTCServer:
-    def __init__(self, frame_queues, mode_value, log_queue):
+    def __init__(self, frame_queues, mode_value):
         self.frame_queues = frame_queues
         self.mode_value = mode_value
-        self.log_queue = log_queue
         self.pcs = set()
         self.active_flags = [multiprocessing.Value("b", False) for _ in frame_queues]
         self.server_runner = None
@@ -21,11 +20,10 @@ class WebRTCServer:
 
     class ProcessedFrameStream(VideoStreamTrack):
         """ This is the inner class that processes the video frames and streams them """
-        def __init__(self, frame_queue, active_flag, nr):
+        def __init__(self, frame_queue, active_flag):
             super().__init__()
             self.frame_queue = frame_queue
             self.active_flag = active_flag
-            self.nr = nr
             self.last_time = time.time()  # For FPS calculation
             self.frame_count = 0  # To count the number of frames
             self.fps = 0  # To store the calculated FPS
@@ -33,6 +31,7 @@ class WebRTCServer:
 
         async def recv(self):
             while True:
+                # To send one black frame to frontend to mute the tracks as start status.
                 if not self.first_frame_sent:
                     self.first_frame_sent = True
                     current_time = time.time()
@@ -66,8 +65,8 @@ class WebRTCServer:
 
                 if time_diff >= 1.0:  # If 1 second has passed
                     self.fps = self.frame_count / time_diff
-                    self.frame_count = 0  # Reset the frame counter
-                    self.last_time = current_time  # Reset the time
+                    self.frame_count = 0 
+                    self.last_time = current_time
                     print(f"FPS: {self.fps:.2f}")
 
                 video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
@@ -91,7 +90,7 @@ class WebRTCServer:
 
             # Attach the correct video streams
             for i, queue in enumerate(self.frame_queues):
-                track = self.ProcessedFrameStream(queue, self.active_flags[i], i)
+                track = self.ProcessedFrameStream(queue, self.active_flags[i])
                 pc.addTrack(track)
 
             # Create an SDP answer and send it back
@@ -150,7 +149,7 @@ class WebRTCServer:
                 # Update active flags for video streams based on mode
                 mode_configs = {
                     0: [False, False, False, False],  # Disable all
-                    1: [True, False, True, True],  # Manual mode
+                    1: [False, False, True, True],  # Manual mode
                     2: [False, False, True, True],  # Docking
                     3: [False, False, True, False],  # Transect
                     4: [True, True, True, False],  # Seagrass

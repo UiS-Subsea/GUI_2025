@@ -105,3 +105,7 @@ docker-compose.override.yml
 # Ignore virtual environment directories
 myenv/
 
+# Ignore python compiled code
+*.pyc
+*.pyo
+__pycache__/

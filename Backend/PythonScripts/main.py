@@ -7,8 +7,15 @@ from task_manager import TaskManager
 from websocket_server import WebSocketServer
 from Thread_info import ThreadWatcher
 
-async def cleanup(thread_watcher, task_manager, communication, websocket_server, webrtc_server):
+# Method for graceful shutdown.
+async def cleanup(thread_watcher, 
+                  task_manager, 
+                  communication, 
+                  websocket_server, 
+                  webrtc_server):
+    
     print("\nShutting down safely...")
+    
     thread_watcher.stop_all_threads()
     task_manager.stop_all_tasks()
     communication.stop()
@@ -21,6 +28,7 @@ def main():
     # Queues for communication
     command_queue = multiprocessing.Queue()  # Commands from frontend
     rov_data_queue = multiprocessing.Queue()  # ROV data to .NET
+
     manual_flag = multiprocessing.Value("i", 1)  # 1 = Manual mode, 0 = Autonomy
 
     # Video Frames to be sent to .NET
@@ -32,9 +40,6 @@ def main():
 
     # 0 = No Mode, 1 = Manual, 2 = Docking, 3 = transect, 4 = SeaGrass, 5 = All Cameras, 6 = Test Camera
     mode_flag = multiprocessing.Value("i", 0)  
-
-    # Start a log queue for capturing WebRTC logs
-    log_queue = multiprocessing.Queue()
 
     # Start thread watcher to manage all threads.
     thread_watcher = ThreadWatcher()
@@ -75,7 +80,7 @@ def main():
     websocket_thread.start()
 
     # Start WebRTC server for sending Video Feed to fronted (UDP).
-    webrtc_server = WebRTCServer(frame_queue, mode_flag, log_queue)
+    webrtc_server = WebRTCServer(frame_queue, mode_flag)
 
     webrtc_thread = threading.Thread(
         target=webrtc_server.run, daemon=True)

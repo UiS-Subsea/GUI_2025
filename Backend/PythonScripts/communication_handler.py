@@ -21,10 +21,6 @@ class CommunicationHandler:
         self.thread_watcher = thread_watcher
         self.id = id
 
-    #def start(self):
-    #    """Starts sending ROV data to .NET."""
-    #    threading.Thread(target=self.send_rov_data, daemon=True).start()
-
     def send_rov_data(self):
         """Sending ROV data to .NET."""
         while self.thread_watcher.should_run(self.id):
