@@ -40,7 +40,7 @@ export const DriveMode = () => {
       <div className='w-full flex flex-col gap-4 justify-center items-center p-4 text-[18px]'>
         <div className='gap-4 flex flex-col min-w-[70px] w-full'>
           <Button name='Manual' action={sendManualCommand} />
-          <Button name='Cable' action={sendTransectCommand} />
+          <Button name='Transect' action={sendTransectCommand} />
           <Button name='Structure' />
           <Button name='Docking' action={sendDockingCommand} />
         </div>

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
 using Backend.Infrastructure.Interface;
+using System.Collections.Concurrent;
 
 namespace Backend.Domain.API
 {
@@ -165,7 +166,7 @@ namespace Backend.Domain.API
             return Ok($"ROV is {status}.");
         }
 
-        private static Dictionary<string, string> LastTemperatureStatus = new Dictionary<string, string>();
+        private static ConcurrentDictionary<string, string> LastTemperatureStatus = new ConcurrentDictionary<string, string>();
         [HttpPost("TemperatureLog")]
         public IActionResult LogTemperature([FromBody] TemperatureStatusCommand temperatureData)
         {

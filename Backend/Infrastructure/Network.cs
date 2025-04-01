@@ -141,7 +141,7 @@ namespace Backend.Infrastructure
                 if (data is List<object> listData)
                 {
                     // Wrap each dictionary inside "*" and Serialize the modified list.
-                    var formattedData = listData.Select(dict => $"\"*\"{JsonSerializer.Serialize(dict)}\"*\"").ToList();
+                    var formattedData = listData.Select(dict => $"\"*\"[{JsonSerializer.Serialize(dict)}]\"*\"").ToList();
 
                     // Concat the list into one single Json String.
                     string jsonMessage = string.Concat(formattedData);
@@ -150,11 +150,10 @@ namespace Backend.Infrastructure
                     byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonMessage);
                     await _stream.WriteAsync(jsonBytes, cancellationToken); // Sends the data.
                 }
-                else if (data is string stringData && stringData == "\"*\"heartbeat\"*\"") // For Sending the Heartbeat
+                else if (data is string stringData && stringData == "\"*\"\"heartbeat\"\"*\"") // For Sending the Heartbeat
                 {
                     // If it's the heartbeat string, send it directly
-                    var jsonHeartbeat = JsonSerializer.Serialize(stringData);
-                    byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonHeartbeat);
+                    byte[] jsonBytes = Encoding.UTF8.GetBytes(stringData);
                     await _stream.WriteAsync(jsonBytes, cancellationToken);
                 }
                 else
@@ -182,7 +181,7 @@ namespace Backend.Infrastructure
                     try
                     {
                         await Task.Delay(_heartbeatInterval, cancellationToken);
-                        var heartbeatData = "\"*\"heartbeat\"*\"";
+                        var heartbeatData = "\"*\"\"heartbeat\"\"*\"";
                         await SendAsync(heartbeatData, cancellationToken);
                     }
                     catch (OperationCanceledException)

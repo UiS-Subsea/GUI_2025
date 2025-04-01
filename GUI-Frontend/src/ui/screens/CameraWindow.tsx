@@ -39,9 +39,6 @@ const CameraWindow = () => {
       >
         <track kind='captions' />
       </video>
-      <div>
-        <span>dfgdfgdfgdgdg</span>
-      </div>
       <div className='w-full h-96 bg-gray-900 flex items-center justify-center'>
         <WebRTCStream />
       </div>

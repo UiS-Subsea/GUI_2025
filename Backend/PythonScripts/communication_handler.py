@@ -21,11 +21,12 @@ class CommunicationHandler:
         self.thread_watcher = thread_watcher
         self.id = id
 
-    def start(self):
-        """Starts sending ROV data to .NET."""
-        threading.Thread(target=self.send_rov_data, daemon=True).start()
+    #def start(self):
+    #    """Starts sending ROV data to .NET."""
+    #    threading.Thread(target=self.send_rov_data, daemon=True).start()
 
     def send_rov_data(self):
+        """Sending ROV data to .NET."""
         while self.thread_watcher.should_run(self.id):
             if not self.rov_data_queue.empty():
                 data = self.rov_data_queue.get()
@@ -39,9 +40,8 @@ class CommunicationHandler:
                         }
                         message = json.dumps(formatted_data)
                         try:
-                            #self.push_socket.send_string(message) when testing
+                            self.push_socket.send_string(message)
                             #print(f"[NETWORK] Sent ROV data: {message}")  for test
-                            1+1
                         except zmq.ZMQError as e:
                             print(f"[NETWORK] Failed to send ROV data: {e}")
                     else:

@@ -18,11 +18,13 @@ class TaskManager:
             mode_flag,
             thread_watcher: ThreadWatcher,
             id: int):
+        
         self.command_queue = command_queue
         self.stereo_left_queue = stereo_left_queue
         self.stereo_right_queue = stereo_right_queue
         self.down_queue = down_queue
         self.manipulator_queue = manipulator_queue
+
         self.execution = ExecutionClass(
             rov_data_queue,
             stereo_left_queue,
@@ -30,6 +32,7 @@ class TaskManager:
             down_queue,
             manipulator_queue,
             manual_flag)
+        
         self.camera = CameraManager()
         self.current_task = None
         self.running = True
@@ -72,7 +75,7 @@ class TaskManager:
             self.mode_flag.value = 0
             self.manual_flag.value = 1  # Switch to manual mode
 
-    def start_camera(self):
+    def start_camera(self): # This is not in use right now.
         self.stop_all_tasks()
         print("[TASK MANAGER] Starting camera feed")
         self.current_task = "CAMERA"
@@ -96,7 +99,7 @@ class TaskManager:
         self.manual_flag.value = 0
         self.start_task_in_thread(self.execution.docking)
 
-    def start_seagrass(self): # This method is made like the others but is not in use.
+    def start_seagrass(self): # This is not in use right now.
         self.stop_all_tasks()
         print("[TASK MANAGER] Starting seagrass monitoring")
         self.current_task = "SEAGRASS"
@@ -104,7 +107,7 @@ class TaskManager:
         self.manual_flag.value = 0
         self.start_task_in_thread(self.execution.seagrass)
 
-    def start_test_camera(self):
+    def start_test_camera(self): # This is not in use right now.
         self.stop_all_tasks()
         print("[TASK MANAGER] Running camera test")
         self.current_task = "TEST"
@@ -119,7 +122,7 @@ class TaskManager:
         self.current_task = "MANUAL"
         self.mode_flag.value = 1
         self.manual_flag.value = 1
-        self.start_task_in_thread(self.execution.show_3_cameras)
+        self.start_task_in_thread(self.execution.show_manual_cameras)
 
     def start_task_in_thread(self, task_function):
         """Start a task in a separate thread"""

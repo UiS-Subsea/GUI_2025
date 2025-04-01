@@ -3,13 +3,11 @@ using Backend.Infrastructure.Interface;
 using NetMQ;
 using NetMQ.Sockets;
 
-public class ZmqCommunicationService : IHostedService
+public class ZmqCommunicationService : BackgroundService
 {
     private readonly ILogger<ZmqCommunicationService> _logger;
     private readonly ICommandQueueService<Dictionary<string, object>> _commandQueue;
     private PullSocket? _rovDataReceiver;
-    private CancellationTokenSource? _cancellationTokenSource;
-    private Task? _rovDataListeningTask;
 
     private const string RovDataReceiverAddress = "tcp://127.0.0.1:5006";
 
@@ -19,7 +17,7 @@ public class ZmqCommunicationService : IHostedService
         _commandQueue = commandQueue;
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Starting ZeroMQ Communication Service...");
 
@@ -27,19 +25,11 @@ public class ZmqCommunicationService : IHostedService
         _rovDataReceiver = new PullSocket();
         _rovDataReceiver.Bind(RovDataReceiverAddress);
 
-        _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _rovDataListeningTask = Task.Run(() => ListenForRovDataAsync(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
-
-        return Task.CompletedTask;
-    }
-
-    private async Task ListenForRovDataAsync(CancellationToken cancellationToken)
-    {
         _logger.LogInformation("Listening for ROV data...");
 
         try
         {
-            while (!cancellationToken.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested)
             {
                 if (_rovDataReceiver.TryReceiveFrameString(out string message))
                 {
@@ -52,14 +42,13 @@ public class ZmqCommunicationService : IHostedService
 
                         if (dataDict != null && dataDict.TryGetValue("autonom_data", out var payload) && payload.Count >= 4)
                         {
-                            _logger.LogInformation($"Parsed autonom_data: X={payload[0]}, Y={payload[1]}, Z={payload[2]}, Rotation={payload[3]}");
 
                             var command = new Dictionary<string, object>
                             {
                                 { "autonom_data", payload.Take(4).ToArray() }
                             };
 
-                            var enqueued = await _commandQueue.EnqueueAsync(command, cancellationToken);
+                            var enqueued = await _commandQueue.EnqueueAsync(command, stoppingToken);
                             if (!enqueued)
                             {
                                 _logger.LogWarning("Failed to enqueue autonom_data command.");
@@ -75,31 +64,20 @@ public class ZmqCommunicationService : IHostedService
                         _logger.LogError($"JSON Parsing Error: {ex.Message}");
                     }
                 }
-
+                else
+                {
+                    // Optional: Add delay to prevent busy-waiting
+                    await Task.Delay(100, stoppingToken);
+                }
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while receiving ROV data.");
         }
+        finally
+        {
+            _rovDataReceiver?.Dispose();
+        }
     }
-
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Stopping ZeroMQ Communication Service...");
-
-        _cancellationTokenSource?.Cancel();
-        _rovDataListeningTask?.Wait();
-
-        _rovDataReceiver?.Dispose();
-
-        return Task.CompletedTask;
-    }
-    public class RovDataMessage
-    {
-        public string Type { get; set; } = string.Empty;
-        public List<int> Payload { get; set; } = new();
-    }
-
 }

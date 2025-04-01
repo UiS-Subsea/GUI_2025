@@ -4,7 +4,8 @@ import Peer from 'peerjs';
 
 const WebRTCStream = () => {
   const [peerId, setPeerId] = useState<string | null>(null); // To store the peer ID from PeerServer
-  const [videoTracks, setVideoTracks] = useState<MediaStreamTrack[]>([]);
+  const [unmutedTracksCount, setUnmutedTracksCount] = useState(0); // Count of unmuted tracks
+  const [isConnected, setIsConnected] = useState(false); // Track WebRTC connection state
 
   const Track0 = useRef<HTMLVideoElement | null>(null);
   const Track1 = useRef<HTMLVideoElement | null>(null);
@@ -44,7 +45,7 @@ const WebRTCStream = () => {
         direction: 'recvonly',
         sendEncodings: [
           {
-            maxBitrate: 5000000, // Set the max bitrate to 1 Mbps (1000000 bps)
+            maxBitrate: 5000000, // Set the max bitrate to 5 Mbps (5000000 bps)
             scaleResolutionDownBy: 2.0,
           },
         ],
@@ -55,10 +56,12 @@ const WebRTCStream = () => {
       if (event.track.kind === 'video') {
         const stream = new MediaStream();
         stream.addTrack(event.track);
+        console.log('Track received:', event.track.kind, event.track.muted);
 
         // Assign first track to localVideoRef, second to remoteVideoRef
         if (!Track0.current.srcObject) {
           Track0.current.srcObject = stream;
+
           addMuteUnmuteEventListener(event.track, 0); // Add mute/unmute listener for Track
         } else if (!Track1.current.srcObject) {
           Track1.current.srcObject = stream;
@@ -95,8 +98,6 @@ const WebRTCStream = () => {
 
     await pc.setLocalDescription(offer);
 
-    console.log('Ready to send post request down under...');
-
     try {
       const response = await fetch('http://localhost:9001/connect', {
         method: 'POST',
@@ -113,6 +114,7 @@ const WebRTCStream = () => {
         const answer = await response.json();
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
 
+        setIsConnected(true); // Set connected state
         console.log('WebRTC connection established!');
       } else {
         console.error('Failed to establish connection with backend!');
@@ -127,41 +129,125 @@ const WebRTCStream = () => {
   const addMuteUnmuteEventListener = (track: MediaStreamTrack, trackIndex: number) => {
     track.addEventListener('mute', () => {
       console.log(`Track ${trackIndex} muted`);
-      if (trackIndex == 0) {
-        Track0.current.style.display = 'none';
-      } else if (trackIndex == 1) {
-        Track1.current.style.display = 'none';
-      } else if (trackIndex == 2) {
-        Track2.current.style.display = 'none';
-      } else if (trackIndex == 3) {
-        Track3.current.style.display = 'none';
-      }
+      setUnmutedTracksCount((prevCount) => Math.max(prevCount - 1, 0)); // Decrease unmuted count
+      if (trackIndex == 0) Track0.current.style.display = 'none';
+      else if (trackIndex == 1) Track1.current.style.display = 'none';
+      else if (trackIndex == 2) Track2.current.style.display = 'none';
+      else if (trackIndex == 3) Track3.current.style.display = 'none';
+      console.log('Track received(muted):', track.kind, track.muted);
     });
     // On a unmute event the style of the Video element is set to inline-block, making it visible.
     track.addEventListener('unmute', () => {
       console.log(`Track ${trackIndex} unmuted`);
-      if (trackIndex == 0) {
-        Track0.current.style.display = 'inline-block';
-      } else if (trackIndex == 1) {
-        Track1.current.style.display = 'inline-block';
-      } else if (trackIndex == 2) {
-        Track2.current.style.display = 'inline-block';
-      } else if (trackIndex == 3) {
-        Track3.current.style.display = 'inline-block';
-      }
+      setUnmutedTracksCount((prevCount) => Math.min(prevCount + 1, 4)); // Increase unmuted count
+      if (trackIndex == 0) Track0.current.style.display = 'inline-block';
+      else if (trackIndex == 1) Track1.current.style.display = 'inline-block';
+      else if (trackIndex == 2) Track2.current.style.display = 'inline-block';
+      else if (trackIndex == 3) Track3.current.style.display = 'inline-block';
+      console.log('Track received (unmuted):', track.kind, track.muted);
     });
   };
 
+  // Function to determine the grid style based on the number of unmuted tracks
+  const getGridStyle = () => {
+    if (unmutedTracksCount === 1) {
+      return {
+        gridTemplateColumns: '1fr',
+        height: '100vh',
+        width: '100vw',
+      }; // 1 video
+    }
+    if (unmutedTracksCount === 2) {
+      return {
+        gridTemplateColumns: '1fr 1fr',
+        height: '100vh',
+        width: '100vw',
+      }; // 2 videos side by side
+    }
+    if (unmutedTracksCount === 3) {
+      return {
+        gridTemplateColumns: '1fr 1fr',
+        gridTemplateRows: '1fr 1fr',
+        height: '75vh',
+        width: '100vw',
+      }; // 3 videos: 2 on top, 1 on bottom
+    }
+    if (unmutedTracksCount === 4) {
+      return {
+        gridTemplateColumns: '1fr 1fr',
+        gridTemplateRows: '1fr 1fr',
+        height: '50vh',
+        width: '100vw',
+      }; // 4 videos: 2x2 grid
+    }
+    return {};
+  };
+
+  const renderMessage = () => {
+    return (
+      <>
+        {/* Inline style for the message container */}
+        {(!isConnected || unmutedTracksCount === 0) && (
+          <div
+            style={{
+              backgroundColor: 'white',
+              padding: '20px',
+              fontSize: '24px', // Larger text
+              textAlign: 'center',
+              borderRadius: '15px', // Rounded corners
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+              zIndex: 1000, // Ensure the message is above other content
+            }}
+          >
+            {isConnected ? 'Waiting for stream' : 'Waiting for WebRTC connection'} {/* Dots with animation */}
+            <span
+              className='dots'
+              style={{
+                display: 'inline-block',
+                position: 'relative',
+              }}
+            ></span>
+          </div>
+        )}
+
+        {/* Add keyframes for animation */}
+        <style>
+          {`
+            @keyframes dot-animation {
+              0% { content: '.'; }
+              33% { content: '..'; }
+              66% { content: '...'; }
+              100% { content: '.'; }
+            }
+  
+            .dots::after {
+              content: '.';
+              animation: dot-animation 1.5s steps(1, end) infinite;
+            }
+          `}
+        </style>
+      </>
+    );
+  };
+
   return (
-    <div
-      className='grid gap-4 p-4'
-      style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, videoTracks.length)}, 1fr)` }}
-    >
-      <div>
-        <video ref={Track0} autoPlay playsInline />
-        <video ref={Track1} autoPlay playsInline />
-        <video ref={Track2} autoPlay playsInline />
-        <video ref={Track3} autoPlay playsInline />
+    <div className='p-4'>
+      {renderMessage()}
+      <div
+        className='grid gap-4 p-4'
+        style={{
+          display: 'grid',
+          ...getGridStyle(),
+        }}
+      >
+        <video ref={Track0} autoPlay playsInline style={{ objectFit: 'cover' }} />
+        <video ref={Track1} autoPlay playsInline style={{ objectFit: 'cover' }} />
+        <video ref={Track2} autoPlay playsInline style={{ objectFit: 'cover' }} />
+        <video ref={Track3} autoPlay playsInline style={{ objectFit: 'cover' }} />
       </div>
     </div>
   );

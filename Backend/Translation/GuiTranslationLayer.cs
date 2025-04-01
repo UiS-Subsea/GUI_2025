@@ -42,7 +42,9 @@ namespace Backend.Translation
                     try
                     {
                         // Packets that are not supposed to be handled.
-                        if (packet.Contains("Error") || packet.Contains("Info") || packet.Contains("Alarm") ||  packet.Contains("heartbeat")) continue;
+                        if (packet.Contains("Error") || packet.Contains("Info") || packet.Contains("Alarm") || packet.Contains("heartbeat") || packet.Contains("polo")) {
+                            continue;
+                        }
 
                         var parsedJson = JsonSerializer.Deserialize<Dictionary<int, JsonElement>>(packet);
                         if (parsedJson == null || parsedJson.Count == 0) continue;

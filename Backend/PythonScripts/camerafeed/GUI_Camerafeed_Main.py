@@ -108,7 +108,6 @@ class CameraManager:
 
     def start_stereo_cam_L(self):
         self.cam_stereoL = Camera("StereoL", GST_FEED_STEREO_L)
-        #self.cam_stereoL = Camera("StereoL", None) # webcam test, remove after
         print("Starting camera: StereoL")
         success = self.cam_stereoL.open_cam()
         if success:
@@ -116,7 +115,6 @@ class CameraManager:
 
     def start_stereo_cam_R(self):
         self.cam_stereoR = Camera("StereoR", GST_FEED_STEREO_R)
-        #self.cam_stereoR = Camera("StereoR", None) # webcam test, remove after
         print("Starting camera: StereoR")
         success = self.cam_stereoR.open_cam()
         if success:
@@ -124,7 +122,6 @@ class CameraManager:
 
     def start_down_cam(self):
         self.cam_down = Camera("Down", GST_FEED_DOWN)
-        #self.cam_down = Camera("Down", None) # webcam test, remove after
         print("Starting camera: Down")
         success = self.cam_down.open_cam()
         if success:
@@ -132,8 +129,6 @@ class CameraManager:
 
     def start_manipulator_cam(self):
         self.cam_manipulator = Camera("Manipulator", GST_FEED_MANIPULATOR)
-        #self.cam_manipulator = Camera("Manipulator", None) # webcam test, remove after
-        #self.cam_manipulator = Camera("Manipulator", GST_FEED_DOWN)
         print("Starting camera: Manipulator")
         success = self.cam_manipulator.open_cam()
         if success:
@@ -255,7 +250,6 @@ class ExecutionClass:
         self.stereo_right_queue = stereo_right_queue
         self.down_queue = down_queue
         self.manipulator_queue = manipulator_queue
-        self.old_frame = None
 
     def update_down(self):
         self.frame_down = self.Camera.get_frame_down()
@@ -276,52 +270,38 @@ class ExecutionClass:
         self.frame_test = self.Camera.get_frame_test()
 
     def show(self, frame, name="frame"):
-    # Map the name to the corresponding queue
-
-    # Track the time before processing the frame
-        #current_time = time.time()
+    # Maps the name to the corresponding queue
     
         if name == "StereoL":
             # Check if the queue is full and remove the oldest item if necessary
-            #if self.stereo_left_queue.full():
-            #    self.stereo_left_queue.get()  # Remove the oldest item to make space
+            if self.stereo_left_queue.full():
+                self.stereo_left_queue.get()  # Remove the oldest item to make space
  
             self.stereo_left_queue.put(frame)
 
-
         elif name == "StereoR":
-            #if self.stereo_right_queue.full():
-            #    self.stereo_right_queue.get()  # Remove the oldest item to make space
+            if self.stereo_right_queue.full():
+                self.stereo_right_queue.get()  # Remove the oldest item to make space
 
             self.stereo_right_queue.put(frame)
 
-
         elif name == "Down":
-            #if self.down_queue.full():
-            #    self.down_queue.get()
+            if self.down_queue.full():
+                self.down_queue.get()
 
             self.down_queue.put(frame)
 
-            # Check if the frames are the same
-            #if np.array_equal(frame, self.old_frame):
-            #    print("The frames are exactly the same.")
-            #    self.old_frame = frame
-            #else:
-            #    print("The frames are different.")
-            #    self.old_frame = frame
-
-
         elif name == "Manipulator":
-            #if self.manipulator_queue.full():
-            #    self.manipulator_queue.get()
+            if self.manipulator_queue.full():
+                self.manipulator_queue.get()
 
             self.manipulator_queue.put(frame)
 
         else:
             print(f"Unknown name '{name}', frame not added to any queue.")
 
-        #if cv2.waitKey(1) == ord("q"):
-        #    self.stop_everything()
+        if cv2.waitKey(1) == ord("q"):
+            self.stop_everything()
 
 
     def testing_for_torr(self):
@@ -368,6 +348,12 @@ class ExecutionClass:
             transect_frame, driving_data_packet = self.AutonomousTransect.run(
                 self.frame_down
             )
+
+            # Check if the returned frame or data is None, skip the iteration if invalid
+            if transect_frame is None or driving_data_packet is None:
+                print("Error: Invalid frame or data received. Skipping this loop iteration.")
+                continue  # Skip this loop iteration and continue with the next
+
             self.show(transect_frame, "Down")
             self.send_data_to_rov(driving_data_packet)
         else:
@@ -381,17 +367,23 @@ class ExecutionClass:
         self.done = False
         #self.Camera.start_stereo_cam_L()
         #self.Camera.start_stereo_cam_R()  # TODO should be down camera
-        self.Camera.start_manipulator_cam()
         self.Camera.start_down_cam()
+        self.Camera.start_manipulator_cam()
         while not self.done and self.manual_flag.value == 0:
             # Needs stereo L, and Down Cameras
             #self.update_stereo_R()
             #self.update_stereo_L()  # TODO should be down camera
             self.update_manipulator()
-            self.update_down()
+            self.update_down()  # Done should be down camera
             docking_frame, frame_under, driving_data_packet = self.Docking.run(
                 self.frame_manipulator, self.frame_down
             )  # TODO should be down camera
+
+            # Check if the frames are valid
+            if docking_frame is None or frame_under is None:
+                print("Error: Invalid frames received. Skipping this loop iteration.")
+                continue  # Skip this loop iteration and continue with the next
+
             self.show(docking_frame, "StereoL")
             self.show(frame_under, "Down")
             self.send_data_to_rov(driving_data_packet)
@@ -426,53 +418,47 @@ class ExecutionClass:
             self.show(self.frame_down, "Down")
             self.show(self.frame_manipulator, "Manipulator")
 
-    def show_3_cameras(self): # for testing purposes.
+    def show_manual_cameras(self): # for testing purposes.
         self.done = False
-        self.Camera.start_stereo_cam_L()
+        #self.Camera.start_stereo_cam_L()
+        #self.Camera.start_stereo_cam_R()
         self.Camera.start_down_cam()
         self.Camera.start_manipulator_cam()
-        ####################################
+
         # Create threads for each camera
-        #stereoL_thread = threading.Thread(target=self.camera_thread1)
-        down_thread = threading.Thread(target=self.camera_thread2, daemon=True)
-        manipulator_thread = threading.Thread(target=self.camera_thread3, daemon=True)
+        down_thread = threading.Thread(target=self.camera_thread1, daemon=True)
+        manipulator_thread = threading.Thread(target=self.camera_thread2, daemon=True)
 
         # Start the threads
-        #stereoL_thread.start()
         down_thread.start()
         manipulator_thread.start()
-        ####################################
-        while not self.done:
-            #self.update_stereo_L()
-            #self.update_down()
-            #self.update_manipulator()
-            #self.show(self.frame_stereoL, "StereoL")
-            #self.show(self.frame_down, "Down")
-            #self.show(self.frame_manipulator, "Manipulator")
-            ############### working code above #####################
-            time.sleep(0.5)
-            pass
-
-        # Wait for all threads to finish
-        #stereoL_thread.join()
+ 
         down_thread.join()
         manipulator_thread.join()
-    
-    def camera_thread1(self):
-        while not self.done:  # Check if stop event is set
-            print("-----_/(o.o)f-------")
-            self.update_stereo_L()  # Update the frame
-            self.show(self.frame_stereoL, "StereoL")
 
-    def camera_thread2(self):
+    def camera_thread1(self):
         while not self.done:  # Check if stop event is set
             self.update_down()  # Update the frame
             self.show(self.frame_down, "Down")
+            time.sleep(0.01) # check to find ideal sleep time.
 
-    def camera_thread3(self):
+    def camera_thread2(self):
         while not self.done:  # Check if stop event is set
             self.update_manipulator()  # Update the frame
             self.show(self.frame_manipulator, "Manipulator")
+            time.sleep(0.01)
+
+    def camera_thread3(self):
+        while not self.done:  # Check if stop event is set
+            self.update_stereo_L()  # Update the frame
+            self.show(self.frame_stereoL, "StereoL")
+            time.sleep(0.01) # check to find ideal sleep time.
+
+    def camera_thread4(self):
+        while not self.done:  # Check if stop event is set
+            self.update_stereo_R()  # Update the frame
+            self.show(self.frame_stereoR, "StereoR")
+            time.sleep(0.01)
 
     def stop_everything(self):
         print("Stopping other processes, returning to manual control")

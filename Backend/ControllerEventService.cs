@@ -65,7 +65,6 @@ namespace Backend
                             {
                                 continue;
                             }
-                            Console.WriteLine("Controller: " + e.ToString());
 
                             // Checks if Event belongs to the ROV, if dose then process it.
                             if (_rovController.IsRelevantEvent(e))

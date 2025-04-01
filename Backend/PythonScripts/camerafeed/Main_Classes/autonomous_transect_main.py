@@ -16,6 +16,10 @@ class AutonomousTransect:
     #takes in frame, finds all the contours of objects with dark blue color
     #returns angle between             
     def run(self, frame):
+        if frame is None:
+            print("Error: Input frame is None!")
+            return None, None
+        
         self.frame = frame
         self.update()
         data = self.get_driving_data()

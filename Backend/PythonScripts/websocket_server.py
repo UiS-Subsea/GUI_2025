@@ -5,7 +5,11 @@ import queue
 from Thread_info import ThreadWatcher
 
 class WebSocketServer:
-    def __init__(self, command_queue: queue.Queue, thread_watcher: ThreadWatcher, id: int):
+    def __init__(
+            self,
+            command_queue: queue.Queue, 
+            thread_watcher: ThreadWatcher, 
+            id: int):
         self.command_queue = command_queue
         self.thread_watcher = thread_watcher
         self.id = id
@@ -23,12 +27,9 @@ class WebSocketServer:
                 # Continuously listen for messages from the client
                 message = await websocket.recv()  # Non-blocking wait for message
                 self.on_message(message)  # Process incoming message
+
         except websockets.exceptions.ConnectionClosed:
             print("[WEBSOCKET] Frontend disconnected")
-        #finally:
-            #self.websocket = None  # Reset the websocket reference when disconnected
-            # Trigger reconnection attempt when connection is closed
-            #await self.reconnect()
 
     def on_message(self, message):
         """Handles an incoming message from the WebSocket."""
@@ -38,7 +39,7 @@ class WebSocketServer:
 
             if command:
                 print(f"[WEBSOCKET] Received command: {command}")
-                self.command_queue.put(command)  # Place command in queue for further processing
+                self.command_queue.put(command)  # Place command in queue
             else:
                 print("[WEBSOCKET] Invalid message format, missing 'command'.")
         except json.JSONDecodeError:
@@ -58,7 +59,6 @@ class WebSocketServer:
         finally:
             print("[WEBSOCKET] Server stopped.")
             await self.cleanup()
-            #await self.stop_server()  # Ensure cleanup is called in the finally block
 
     async def cleanup(self):
         """Cleanup resources before shutdown."""
@@ -85,18 +85,19 @@ class WebSocketServer:
         self.loop = asyncio.new_event_loop()  # Create a new event loop
         asyncio.set_event_loop(self.loop)  # Set the event loop for the current thread
 
-        self.loop.run_until_complete(self.start_server())  # Run the server in the event loop
+        self.loop.run_until_complete(self.start_server()) # Run the server in the event loop
 
-    def stop_server(self):
+    async def stop_server(self):
         """Handles graceful shutdown of the server when a signal is received."""
         print("[WEBSOCKET] Received shutdown signal. Stopping server...")
 
         if self.websocket:
             print("[WEBSOCKET]Closing active connections...")
-            self.websocket.close()
+            await  self.websocket.close() # Wait for WebSocket to close
 
         if self.server:
             print("[WEBSOCKET] Closing WebSocket server...")
             self.server.close()
+            await self.server.wait_closed()  # Ensure the server is fully closed
 
         print("[WEBSOCKET] Shutdown complete.")

@@ -1,5 +1,7 @@
 import asyncio
 import time
+
+import numpy as np
 from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack
 from av import VideoFrame
 from aiohttp import web
@@ -27,15 +29,27 @@ class WebRTCServer:
             self.last_time = time.time()  # For FPS calculation
             self.frame_count = 0  # To count the number of frames
             self.fps = 0  # To store the calculated FPS
+            self.first_frame_sent = False
 
         async def recv(self):
             while True:
+                if not self.first_frame_sent:
+                    self.first_frame_sent = True
+                    current_time = time.time()
+
+                    pts, time_base = await self.next_timestamp()
+                    dummy_frame = np.zeros((720, 1280, 3), dtype=np.uint8)  # Black frame
+                    dummy_video_frame = VideoFrame.from_ndarray(dummy_frame, format="bgr24")
+                    dummy_video_frame.pts = pts
+                    dummy_video_frame.time_base = time_base
+                    return dummy_video_frame  # Return the dummy frame to the track
+
                 if not self.active_flag.value:
                     await asyncio.sleep(0.5)
                     continue
+                current_time = time.time()
             
                 if self.frame_queue.empty():
-                    #print(f"Empty Queue Nr: {self.nr:.2f}")
                     await asyncio.sleep(0.01)
                     continue
 
@@ -55,13 +69,6 @@ class WebRTCServer:
                     self.frame_count = 0  # Reset the frame counter
                     self.last_time = current_time  # Reset the time
                     print(f"FPS: {self.fps:.2f}")
-
-                #frame = cv2.resize(frame, (640, 480))  # width, height
-                #frame = cv2.resize(frame, (320, 180))  # width, height
-                #frame = cv2.resize(frame, (1280, 720))  # width, height
-                #frame = cv2.resize(frame, (1920, 1080))  # width, height
-
-                #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # flips the color, might not need it!
 
                 video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
                 video_frame.pts = pts
@@ -144,12 +151,13 @@ class WebRTCServer:
                 mode_configs = {
                     0: [False, False, False, False],  # Disable all
                     1: [True, False, True, True],  # Manual mode
-                    2: [True, False, True, False],  # Docking
+                    2: [False, False, True, True],  # Docking
                     3: [False, False, True, False],  # Transect
                     4: [True, True, True, False],  # Seagrass
                     5: [True, True, True, True],  # All cameras
                     6: [True, False, True, False]  # Test mode
                 }
+                # What each index represents:
                 #[stereo_left_queue, stereo_right_queue, down_queue, manipulator_queue]
 
                 for i in range(len(self.active_flags)):
@@ -163,26 +171,26 @@ class WebRTCServer:
         """ Starts the WebRTC server and mode watching concurrently """
         await asyncio.gather(
             self.start_peer_server(),  # Start the signaling server
-            self.watch_mode_and_update_streams()  # Watch and update streams based on mode
+            self.watch_mode_and_update_streams() # Watch and update streams based on mode
         )
 
-    def shutdown(self):
+    async def shutdown(self):
         """ Shutdown the WebRTC server and clean up resources """
         print("[WebRTC] Shutting down...")
 
-        # Close active WebRTC connections
-        for pc in self.pcs:
-            asyncio.create_task(pc.close())  # Close WebRTC connections gracefully
+        # Close active WebRTC connections gracefully
+        tasks = [pc.close() for pc in self.pcs]
         self.pcs.clear()  # Clear the set of peer connections
+        await asyncio.gather(*tasks)  # Ensure all peer connections are closed
 
         # Stop the HTTP server on port 9001
         if self.server_site:
             print("[WebRTC] Stopping HTTP server on port 9001...")
-            asyncio.create_task(self.server_site.stop())
+            await self.server_site.stop()  # Gracefully stop the server
 
         if self.server_runner:
             print("[WebRTC] Cleaning up the HTTP server runner...")
-            asyncio.create_task(self.server_runner.cleanup())
+            await self.server_runner.cleanup()  # Cleanup the server runner
 
         print("[WebRTC] Shutdown complete.")
 
