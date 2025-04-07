@@ -28,7 +28,7 @@ namespace Backend
             _modeService = modeService;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             // Set Hint for Joystick to disable RawInput, or else it can't read the Xbox One controller input.
             SDL.SDL_SetHint(SDL.SDL_HINT_JOYSTICK_RAWINPUT, "0");
@@ -42,83 +42,76 @@ namespace Backend
             _maniController.InitializeJoystick(); // Mani Controller.
 
             // Main loop to poll events and add them to the queue
-            return Task.Run(async () =>
+            Stopwatch stopwatch = new Stopwatch();
+
+            while (!stoppingToken.IsCancellationRequested)
             {
-                Stopwatch stopwatch = new Stopwatch();
-
-                while (!stoppingToken.IsCancellationRequested)
+                stopwatch.Restart(); // Start measuring the loop time
+                try
                 {
+                    SDL.SDL_Event e;
 
-                    stopwatch.Restart(); // Start measuring the loop time
-                    
-
-                    try
+                    // Process all events and update state
+                    while (SDL.SDL_PollEvent(out e) != 0)
                     {
-                        SDL.SDL_Event e;
-
-                        // Process all events and update state
-                        while (SDL.SDL_PollEvent(out e) != 0)
+                        // Skip processing if mode is not "Manual"
+                        if (!_modeService.IsManual()) // Check if the mode is manual
                         {
-                
-                            // Skip processing if mode is not "Manual"
-                            if (!_modeService.IsManual()) // Check if the mode is manual
-                            {
-                                continue;
-                            }
-
-                            // Checks if Event belongs to the ROV, if dose then process it.
-                            if (_rovController.IsRelevantEvent(e))
-                            {
-                                //_rovController.CheckJoystickConnection();
-                                // Process the Event and stores data internally in the ROVController.
-                                _rovController.ProcessEvents(e, stoppingToken);
-                            }
-
-                            // Checks if Event belongs to the Manipulator, if dose then process it.
-                            if (_maniController.IsRelevantEvent(e))
-                            {
-                                //_maniController.CheckJoystickConnection();
-                                // Process the Event and stores data internally in the ManiController.
-                                _maniController.ProcessEvents(e, stoppingToken);
-                            }
-                            
+                            continue;
                         }
-                        // Get final data at the end of the tick
-                        Dictionary<string, object> rovData = _rovController.GetState();
-                        Dictionary<string, object> maniData = _maniController.GetState();
+                        Console.WriteLine("Event: " +  e.type);
 
-                        // Merge both datasets
-                        Dictionary<string, object> commandData = rovData.Concat(maniData)
-                            .ToDictionary(pair => pair.Key, pair => pair.Value);
-
-                        // Used to check for Queue Delay.
-                        commandData["timestamp"] = DateTime.UtcNow;  // Add timestamp
-
-                        // Send the final merged data only if there's something to send
-                        if (commandData.Count > 1) // More than just timestamp
+                        // Checks if Event belongs to the ROV, if dose then process it.
+                        if (_rovController.IsRelevantEvent(e))
                         {
-                            Stopwatch sw = Stopwatch.StartNew();
-                            await _commandQueue.EnqueueAsync(commandData);
-                            sw.Stop();
+                            //_rovController.CheckJoystickConnection();
+                            // Process the Event and stores data internally in the ROVController.
+                            _rovController.ProcessEvents(e, stoppingToken);
+                        }
 
-                            if (sw.ElapsedMilliseconds > 1)  // Set a threshold, e.g., 10ms 
-                            {
-                                _logger.LogWarning("EnqueueAsync took too long: {ElapsedMilliseconds} ms", sw.ElapsedMilliseconds);
-                            }
+                        // Checks if Event belongs to the Manipulator, if dose then process it.
+                        if (_maniController.IsRelevantEvent(e))
+                        {
+                            //_maniController.CheckJoystickConnection();
+                            // Process the Event and stores data internally in the ManiController.
+                            _maniController.ProcessEvents(e, stoppingToken);
                         }
                     }
-                    catch (Exception ex)
+                    // Get final data at the end of the tick
+                    Dictionary<string, object> rovData = _rovController.GetState();
+                    Dictionary<string, object> maniData = _maniController.GetState();
+                    Console.WriteLine("--------------------------------------------------------");
+
+                    // Merge both datasets
+                    Dictionary<string, object> commandData = rovData.Concat(maniData)
+                        .ToDictionary(pair => pair.Key, pair => pair.Value);
+
+                    // Used to check for Queue Delay.
+                    commandData["timestamp"] = DateTime.UtcNow;  // Add timestamp
+
+                    // Send the final merged data only if there's something to send
+                    if (commandData.Count > 1) // More than just timestamp
                     {
-                        _logger.LogError(ex, "Error in SDL event loop");
+                        Stopwatch sw = Stopwatch.StartNew();
+                        await _commandQueue.EnqueueAsync(commandData);
+                        sw.Stop();
+
+                        if (sw.ElapsedMilliseconds > 1)  // Set a threshold, e.g., 10ms 
+                        {
+                            _logger.LogWarning("EnqueueAsync took too long: {ElapsedMilliseconds} ms", sw.ElapsedMilliseconds);
+                        }
                     }
-
-                    // Ensure the loop runs exactly 20 times per second
-                    int elapsedMs = (int)stopwatch.ElapsedMilliseconds;
-                    int delay = Math.Max(50 - elapsedMs, 0); // Adjust delay to maintain 20 Hz
-
-                    await Task.Delay(delay, stoppingToken);
                 }
-            }, stoppingToken);
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in SDL event loop");
+                }
+                // Ensure the loop runs exactly 20 times per second
+                int elapsedMs = (int)stopwatch.ElapsedMilliseconds;
+                int delay = Math.Max(50 - elapsedMs, 0); // Adjust delay to maintain 20 Hz
+
+                await Task.Delay(delay, stoppingToken);
+            }
         }
         public override Task StopAsync(CancellationToken cancellationToken)
         {

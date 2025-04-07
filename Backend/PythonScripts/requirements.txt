@@ -1,5 +1,9 @@
-google-crc32c
-zmq==4.3.4
-websockets==10.1
-opencv-python==4.5.3.56
-numpy==1.21.0
+websockets==11.0.3
+numpy==1.21.6
+aiortc==1.5.0
+av==10.0.0
+aiohttp==3.8.6
+aiohttp-cors==0.7.0
+pyzmq==26.2.1
+matplotlib==3.5.3
+Pillow==9.5.0
