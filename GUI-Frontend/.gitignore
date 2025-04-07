@@ -90,3 +90,9 @@ typings/
 
 # Electron-Forge
 out/
+
+# Ignore macOS system file
+.DS_Store
+
+# Ignore yarn lock file (if you are not using Yarn or want to keep it out)
+yarn.lock

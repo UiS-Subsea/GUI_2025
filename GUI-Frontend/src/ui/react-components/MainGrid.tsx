@@ -15,9 +15,13 @@ import { Manipulator } from './grid-items/Manipulator';
 import { Coordinates } from './grid-items/Coordinates';
 import { Grid1 } from './grid-items/Grid1';
 import { Grid2 } from './grid-items/Grid2';
+import { PinButton } from './grid-items/PinButton';
+import { useGridPin } from '../contexts/GridPinContext';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 export const DashboardGrid = () => {
+  const { isPinned } = useGridPin();
+
   const layouts = {
     lg: [
       { i: 'cameraFunctions', x: 0, y: 0, w: 2, h: 2 },
@@ -74,41 +78,59 @@ export const DashboardGrid = () => {
         isBounded={false}
         isDraggable={true}
         isResizable={true}
+        draggableHandle='.drag-Handle'
+        draggableCancel='.pin-button'
+        onDragStart={(layout, oldItem, newItem, placeholder, e, element) => {
+          if (isPinned(oldItem.i)) {
+            return false;
+          }
+        }}
+        onResizeStart={(layout, oldItem, newItem, placeholder, e, element) => {
+          if (isPinned(oldItem.i)) {
+            return false;
+          }
+        }}
       >
         <div
           key='cameraFunctions'
-          className=' dark:bg-[#2A2A2A] text-black dark:text-white bg-white  p-2 border-black border-2 rounded-md overflow-auto '
+          className='drag-Handle dark:bg-[#2A2A2A] text-black dark:text-white bg-white p-2 border-black border-2 rounded-md overflow-auto relative'
         >
+          <PinButton itemId='cameraFunctions' />
           <CameraFunctions />
         </div>
         <div
           key='lightSettings'
-          className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+          className='drag-Handle dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md relative'
         >
+          <PinButton itemId='lightSettings' />
           <LightSettings />
         </div>
         <div
           key='driveMode'
-          className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+          className='drag-Handle dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md relative'
         >
+          <PinButton itemId='driveMode' />
           <DriveMode />
         </div>
         <div
           key='angles'
-          className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+          className='drag-Handle dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md relative'
         >
+          <PinButton itemId='angles' />
           <Angles />
         </div>
         <div
           key='temperature'
-          className=' drag-Handle flex justify-center dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+          className='drag-Handle flex justify-center dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md relative'
         >
+          <PinButton itemId='temperature' />
           <Temperature />
         </div>
         <div
           key='coordinates'
-          className=' drag-Handle flex justify-center dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+          className='drag-Handle flex justify-center dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md relative'
         >
+          <PinButton itemId='coordinates' />
           <Coordinates />
         </div>
         {/* <div
@@ -119,32 +141,37 @@ export const DashboardGrid = () => {
         </div> */}
         <div
           key='sensors'
-          className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md overflow-auto'
+          className='drag-Handle dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md overflow-auto relative'
         >
+          <PinButton itemId='sensors' />
           <Sensor />
         </div>
         <div
           key='battery'
-          className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+          className='drag-Handle dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md relative'
         >
+          <PinButton itemId='battery' />
           <Battery />
         </div>
         <div
           key='manipulatorConnection'
-          className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+          className='drag-Handle dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md relative'
         >
+          <PinButton itemId='manipulatorConnection' />
           <Manipulator />
         </div>
         <div
           key='grid1'
-          className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+          className='drag-Handle dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md relative'
         >
+          <PinButton itemId='grid1' />
           <Grid1 />
         </div>
         <div
           key='grid2'
-          className='drag-Handle  dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md'
+          className='drag-Handle dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md relative'
         >
+          <PinButton itemId='grid2' />
           <Grid2 />
         </div>
       </ResponsiveGridLayout>

@@ -15,7 +15,8 @@ import Data from './screens/Data';
 import CameraWindow from './screens/CameraWindow';
 import { WebSocketProvider } from '../../WebSocketProvider';
 import { SensorErrorProvider } from './react-components/SensorErrorPopup';
-import { WebSocketCommandProvider } from '../../WebSocketManager';
+import { DriveModeProvider } from './contexts/DriveModeContext';
+import { GridPinProvider } from './contexts/GridPinContext';
 
 const onMenuEvent = (_: Electron.IpcRendererEvent, channel: string, ...args: any[]) => {
   electron.ipcRenderer.invoke(channel, args);
@@ -61,30 +62,32 @@ export default function App() {
     <div className='w-screen h-screen'>
       <Router>
         <WebSocketProvider>
-          <WebSocketCommandProvider>
-            <SensorErrorProvider>
-              <Titlebar>
-                {(windowState) => (
-                  <>
-                    {__WIN32__ && (
-                      <>
-                        <Menu />
-                        <WindowControls windowState={windowState} />
-                      </>
-                    )}
-                  </>
-                )}
-              </Titlebar>
-              <Routes>
-                <Route path='/' element={<Home isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
-                <Route
-                  path='/settings'
-                  element={<Settings isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}
-                />
-                <Route path='/data' element={<Data isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
-              </Routes>
-            </SensorErrorProvider>
-          </WebSocketCommandProvider>
+          <SensorErrorProvider>
+            <DriveModeProvider>
+              <GridPinProvider>
+                <Titlebar>
+                  {(windowState) => (
+                    <>
+                      {__WIN32__ && (
+                        <>
+                          <Menu />
+                          <WindowControls windowState={windowState} />
+                        </>
+                      )}
+                    </>
+                  )}
+                </Titlebar>
+                <Routes>
+                  <Route path='/' element={<Home isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+                  <Route
+                    path='/settings'
+                    element={<Settings isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}
+                  />
+                  <Route path='/data' element={<Data isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+                </Routes>
+              </GridPinProvider>
+            </DriveModeProvider>
+          </SensorErrorProvider>
         </WebSocketProvider>
       </Router>
     </div>
