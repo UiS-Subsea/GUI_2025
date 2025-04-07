@@ -3,6 +3,7 @@ import path from 'path';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { createAppWindow } from './appWindow';
 import fs from 'fs';
+import { PeerServer } from 'peer';
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
@@ -84,12 +85,28 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+// Declare peerServer globally
+let peerServer: any; // Declare the PeerJS server variable
+
 // Install React Developer Tools on dev startup
 app.whenReady().then(() => {
   installExtension(REACT_DEVELOPER_TOOLS)
     .then((name) => console.info(`✅ DevTools Extension Loaded: ${name}`))
     .catch((err) => console.warn('❌ DevTools install error:', err));
+
+  // Start the PeerJS signaling server
+  startPeerServer();
 });
+
+// Function to start the PeerJS server
+function startPeerServer() {
+  peerServer = PeerServer({
+    port: 9000, // You can choose any available port
+    path: '/peerjs', // The path for the PeerJS server (same path you'll use in your frontend)
+  });
+
+  console.log('[PeerJS] Signaling server running on port 9000');
+}
 
 // Create main window on app ready
 app.on('ready', createAppWindow);

@@ -1,0 +1,5 @@
+google-crc32c
+zmq==4.3.4
+websockets==10.1
+opencv-python==4.5.3.56
+numpy==1.21.0
