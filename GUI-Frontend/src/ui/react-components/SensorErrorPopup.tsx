@@ -28,12 +28,15 @@ const ErrorPopup: React.FC<{
   if (!isVisible) return null;
 
   return (
-    <div className='sensor-error-popup-overlay'>
-      <div className='sensor-error-popup font-silkscreen'>
+    <div className='sensor-error-popup-overlay '>
+      <div className='sensor-error-popup font-silkscreen border-red-500 border-2'>
         <h1 className='text-lg font-bold'>Sensor Errors:</h1>
         <ul>
           {errors.length > 0 ? errors.map((error, index) => <li key={index}>{error}</li>) : <li>No active alarms</li>}
         </ul>
+        {errors.length > 0 && (
+          <h2 className=' text-red-600 border-red-500 border-2 p-2 m-2'>Please take actions immedately!!</h2>
+        )}
         <button
           onClick={() => {
             onVisibilityChange(false);
@@ -47,6 +50,10 @@ const ErrorPopup: React.FC<{
   );
 };
 
+// context provider to manage the sensor errors
+// This component will wrap around the parts of the app that need access to the sensor error context
+// It will also manage the visibility of the error popup
+// and the logic for clearing errors
 export const SensorErrorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const sensorErrors = sensorerror();
   const [visibleErrors, setVisibleErrors] = useState<string[]>([]);

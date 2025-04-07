@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from '../Button';
+import { useDriveMode } from '../../contexts/DriveModeContext';
 
 export const DriveMode = () => {
-  const [selectedMode, setSelectedMode] = useState('Manual');
+  const [selectedMode, setSelectedMode] = useState('');
+  const { isTrackingMode, toggleTrackingMode } = useDriveMode();
 
   const sendDriveModeCommand = async (mode: string) => {
     try {
@@ -22,6 +24,15 @@ export const DriveMode = () => {
     if (mode !== selectedMode) {
       setSelectedMode(mode);
       sendDriveModeCommand(mode);
+
+      // If switching to Manual mode, enable manual controls
+      if (mode === 'Automatic' && !isTrackingMode) {
+        toggleTrackingMode();
+      }
+      // If switching away from Manual mode, disable manual controls
+      else if (mode !== 'Automatic' && isTrackingMode) {
+        toggleTrackingMode();
+      }
     }
   };
 
@@ -31,13 +42,18 @@ export const DriveMode = () => {
       <div className='w-full flex flex-col gap-4 justify-center items-center p-4 text-[18px]'>
         <div className='gap-4 flex flex-col min-w-[70px] w-full'>
           <Button name='Manual' action={() => handleModeChange('Manual')} selected={selectedMode === 'Manual'} />
-          <Button name='Cable' action={() => handleModeChange('Cable')} selected={selectedMode === 'Cable'} />
           <Button
-            name='Structure'
-            action={() => handleModeChange('Structure')}
-            selected={selectedMode === 'Structure'}
+            name={isTrackingMode ? 'Automatic (Active' : 'Automatic'}
+            action={() => handleModeChange('Automatic')}
+            selected={selectedMode === 'Automatic'}
           />
+          <Button name='Transect' action={() => handleModeChange('Transect')} selected={selectedMode === 'Transect'} />
           <Button name='Docking' action={() => handleModeChange('Docking')} selected={selectedMode === 'Docking'} />
+          <Button
+            name='Autotuning'
+            action={() => handleModeChange('Autotuning')}
+            selected={selectedMode === 'Autotuning'}
+          />
         </div>
       </div>
     </>
