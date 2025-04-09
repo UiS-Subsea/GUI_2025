@@ -64,8 +64,8 @@ export const Data: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void }>
 
   return (
     <>
-      <div className='w-screen h-screen bg-lightBg dark:bg-darkBg font-silkscreen'>
-        <div className='w-screen h-[70px] pt-2 flex flex-row gap-2 font-silkscreen bg-lightBg dark:bg-darkBg justify-center items-center transition-colors duration-300'>
+      <div className='w-screen h-screen bg-lightBg font-silkscreen dark:bg-darkBg '>
+        <div className='w-screen h-[70px] pt-2 flex flex-row gap-2  bg-lightBg dark:bg-darkBg justify-center items-center transition-colors duration-300'>
           <div className='rounded-md sm:w-[30px] max-w-[80px] md:w-full h-full items-center justify-center flex'>
             {isDarkMode ? (
               <img src='./assets/images/logo.png' width={60} alt='dark logo' />
@@ -156,7 +156,7 @@ export const Data: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void }>
           </h2>
 
           <pre
-            className={`p-3 font-silkscreen text-[15px] lg:text-[18px] rounded overflow-auto max-h-96 whitespace-pre-wrap transition-all duration-300 flex justify-start items-start ${
+            className={`p-3 text-[15px] font-silkscreen lg:text-[18px] rounded overflow-auto max-h-96 whitespace-pre-wrap transition-all duration-300 flex justify-start items-start ${
               isDarkMode ? 'bg-[#232323] text-white' : 'bg-gray-100 text-black'
             }`}
             style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', maxHeight: '500px', overflowY: 'auto' }}

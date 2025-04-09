@@ -98,7 +98,7 @@ export const Grid1 = () => {
               <form className='flex flex-col h-full justify-center items-center' onSubmit={handleStepSubmit}>
                 <div className='flex flex-row w-full justify-center items-center space-x-5 mb-4'>
                   <label htmlFor='stepSelect' className='text-sm font-medium'>
-                    Step:
+                    Trajectory:
                   </label>
                   <select
                     id='stepSelect'

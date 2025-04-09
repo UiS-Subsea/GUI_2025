@@ -28,7 +28,7 @@ export const NavBar: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void 
           <img src='/assets/images/logoDark.png' width={60} alt='light logo' />
         )}
       </div>
-      <div className='rounded-md  border-2 border-black dark:border-white text-lightText dark:text-darkText max-w-[300px] min-w-[250px] w-full h-full font-silkscreen sm:text-[10px] md:text-[20px] px-1'>
+      <div className='rounded-md  border-2 border-black dark:border-white text-lightText dark:text-darkText max-w-[300px] min-w-[250px] w-full h-full sm:text-[10px] md:text-[20px] px-1'>
         <Connection />
       </div>
       <div className='h-full border-2 min-w-[300px] flex justify-center items-center rounded-md  border-black dark:border-white text-lightText dark:text-darkText w-full text-[30px]'>
@@ -38,7 +38,7 @@ export const NavBar: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void 
         <NavigateButton text='LOGS' route='/data' />
       </div>
       <button
-        className='text-[20px] bg-lightBg flex justify-center items-center h-full w-[110px] dark:bg-darkBg text-lightText dark:text-darkText font-silkscreen border-2 border-black dark:border-white rounded-md px-4 py-2 cursor-pointer hover:opacity-80 transition-opacity'
+        className='text-[20px] bg-lightBg flex justify-center items-center h-full w-[110px] dark:bg-darkBg text-lightText dark:text-darkText border-2 border-black dark:border-white rounded-md px-4 py-2 cursor-pointer hover:opacity-80 transition-opacity'
         onClick={handleAlarmClick}
         onKeyDown={(e) => e.key === 'Enter' && handleAlarmClick()}
       >

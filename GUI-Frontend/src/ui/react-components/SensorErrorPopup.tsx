@@ -29,7 +29,7 @@ const ErrorPopup: React.FC<{
 
   return (
     <div className='sensor-error-popup-overlay '>
-      <div className='sensor-error-popup font-silkscreen border-red-500 border-2'>
+      <div className='sensor-error-popup border-red-500 border-2'>
         <h1 className='text-lg font-bold'>Sensor Errors:</h1>
         <ul>
           {errors.length > 0 ? errors.map((error, index) => <li key={index}>{error}</li>) : <li>No active alarms</li>}
