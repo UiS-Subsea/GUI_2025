@@ -11,8 +11,8 @@ export const Logger: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void 
 }) => {
   return (
     <>
-      <div className='w-screen h-screen bg-lightBg dark:bg-darkBg'>
-        <div className='w-screen h-[70px] pt-2 flex flex-row gap-2 font-silkscreen bg-lightBg dark:bg-darkBg  justify-center items-center transition-colors duration-300'>
+      <div className='w-screen h-screen  bg-lightBg dark:bg-darkBg'>
+        <div className='w-screen h-[70px]  pt-2 flex flex-row gap-2 bg-lightBg dark:bg-darkBg  justify-center items-center transition-colors duration-300'>
           <div className='rounded-md sm:w-[30px] max-w-[80px] md:w-full h-full items-center justify-center flex'>
             {isDarkMode ? (
               <img src='./assets/images/logo.png' width={60} alt='dark logo' />
@@ -21,7 +21,7 @@ export const Logger: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void 
             )}
           </div>
 
-          <div className='h-full border-2 min-w-[300px] flex justify-center items-center rounded-md  border-black dark:border-white text-lightText dark:text-darkText w-full text-[30px]'>
+          <div className='h-full font-silkscreen border-2 min-w-[300px] flex justify-center items-center rounded-md  border-black dark:border-white text-lightText dark:text-darkText w-full text-[30px]'>
             ROV LOGS
           </div>
 

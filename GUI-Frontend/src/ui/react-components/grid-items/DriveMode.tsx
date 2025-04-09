@@ -47,7 +47,7 @@ export const DriveMode = () => {
             action={() => handleModeChange('Automatic')}
             selected={selectedMode === 'Automatic'}
           />
-          <Button name='Transect' action={() => handleModeChange('Transect')} selected={selectedMode === 'Transect'} />
+          <Button name='Pipeline' action={() => handleModeChange('Pipeline')} selected={selectedMode === 'Pipeline'} />
           <Button name='Docking' action={() => handleModeChange('Docking')} selected={selectedMode === 'Docking'} />
           <Button
             name='Autotuning'
