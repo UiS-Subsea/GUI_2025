@@ -18,6 +18,7 @@ module.exports = {
       },
       fontFamily: {
         silkscreen: ['Silkscreen', 'cursive'],
+        roboto: ['Roboto', 'sans-serif'],
       },
     },
   },

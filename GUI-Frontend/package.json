@@ -36,6 +36,7 @@
   ],
   "dependencies": {
     "@microsoft/signalr": "^8.0.7",
+    "ag-grid-react": "^33.2.2",
     "axios": "^1.7.9",
     "electron-squirrel-startup": "^1.0.1",
     "electron-window-state": "^5.0.3",
