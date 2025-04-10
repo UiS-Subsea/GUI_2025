@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '../Button';
-import CamWindowButton from '../CamWindowButton';
+import { Button } from '../../components/Button';
+import CamWindowButton from '../../components/CamWindowButton';
 
 export const CameraFunctions = () => {
   const [tiltValue, setTiltValue] = useState(0);
