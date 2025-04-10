@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useStateData } from '../../../../WebSocketProvider';
 
 export const Manipulator = () => {
-  const [connection, setConnection] = useState(true); // State for connection status
   const [imagePath, setImagePath] = useState('../assets/images/red.svg'); // State for image path
 
   const [lastLoggedStatus, setLastLoggedStatus] = useState<boolean | null>(null);
+
+  const stateData = useStateData();
 
   const sendLogToBackend = async (isConnected: boolean) => {
     if (lastLoggedStatus === isConnected) {
@@ -43,13 +45,15 @@ export const Manipulator = () => {
   // }, [connection]); // Trigger effect when `connection` changes
 
   useEffect(() => {
+    const connection = stateData.ROVConState;
+
     if (lastLoggedStatus === null || lastLoggedStatus !== connection) {
       sendLogToBackend(connection);
       setLastLoggedStatus(connection);
     }
 
     setImagePath(connection ? '../assets/images/green.svg' : '../assets/images/red.svg');
-  }, [connection]);
+  }, [stateData.ROVConState]);
 
   return (
     <>

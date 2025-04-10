@@ -36,9 +36,9 @@ builder.Services.AddCors(options =>
 // Add services to the container
 builder.Services.AddSingleton<ICommandQueueService<Dictionary<string, object>>, CommandQueueService<Dictionary<string, object>>>();
 builder.Services.AddSingleton<IModeService, ModeService>(); // "global variable" to tell backend what Drive Mode it is.
+builder.Services.AddSingleton<WebSocketServer>(); // Singleton WebSocket server to handle connections.
 builder.Services.AddSingleton<IROVController, RovController>(); // Handles input from ROV controller.
 builder.Services.AddSingleton<IManiController, ManiController>(); // Handles input from Manipulator Controller.
-builder.Services.AddSingleton<WebSocketServer>(); // Singleton WebSocket server to handle connections.
 
 builder.Services.AddSingleton<IGUITranslationLayer, GUITranslationLayer>(); // Translate data into GUI formate data.
 builder.Services.AddSingleton<IRovTranslationLayer, RovTranslationLayer>(); // Translate Generic command data into ROV format Data.

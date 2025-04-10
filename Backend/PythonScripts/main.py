@@ -87,8 +87,6 @@ def main():
     
     webrtc_thread.start()
 
-    print("[Main] We got to the while loop in main")
-
     try:
         while True:
             text = input("Waiting for input")
