@@ -330,7 +330,93 @@ namespace Backend.Translation
                 }
             ];
         }
-
+        /*
+        private Object[] BuildRegModePacket(int[] tilt)
+        {
+            return
+            [
+                32,
+                new int[]
+                {
+                    GetValue(RegMode, 1),
+                    0, 0, 0, 0, 0, 0, 0,
+                }
+            ];
+        }
+        private Object[] BuildPIDParametersPacket(int[] tilt)
+        {
+            return
+            [
+                42,
+                new int[]
+                {
+                    GetValue(PIDParameters, 0), // Degree of Freedom
+                    GetValue(PIDParameters, 1), // KP
+                    GetValue(PIDParameters, 2), // KI
+                    GetValue(PIDParameters, 3), // KD
+                }
+            ];
+        }
+        private Object[] BuildStartAutotunePacket(int[] tilt)
+        {
+            return
+            [
+                43,
+                new int[]
+                {
+                    GetValue(rov_axis, 0), // Start  0= NO, 1 = yes
+                    GetValue(rov_axis, 1), // Abort  0= NO, 1 = yes
+                    GetValue(rov_axis, 2), // Degree of Freedom
+                    GetValue(rov_axis, 3), // Stepsize
+                    0, 0, 0, 0,
+                }
+            ];
+        }
+        private Object[] BuildRegModeSettingsPacket(int[] tilt)
+        {
+            return
+            [
+                300,
+                new float[]
+                {
+                    GetValue(rov_axis, 0), // Reference X (WPT) , Float
+                    GetValue(rov_axis, 1), // Reference Y (WPT) , Float
+                    GetValue(rov_axis, 2), // Reference Z (WPT) , Float
+                    GetValue(rov_axis, 3), // Reference PSI (WPT) , Float
+                    GetValue(rov_axis, 4), // Chosen Trajectory  , Int
+                    GetValue(rov_axis, 5), // Chosen Speed  , Float
+                }
+            ];
+        }
+        private Object[] BuildRegMPCSettingsPacket(int[] tilt)
+        {
+            return
+            [
+                301,
+                new float[]
+                {
+                    GetValue(rov_axis, 0), // Qx
+                    GetValue(rov_axis, 1), // Qy
+                    GetValue(rov_axis, 2), // Qz
+                    GetValue(rov_axis, 3), // Qpsi
+                    GetValue(rov_axis, 4), // Ru
+                    GetValue(rov_axis, 5), // Rv
+                    GetValue(rov_axis, 6), // Rw
+                    GetValue(rov_axis, 7), // Rr
+                    GetValue(rov_axis, 8), // Dt
+                    GetValue(rov_axis, 9), // N
+                    GetValue(rov_axis, 10), // vel_u_max
+                    GetValue(rov_axis, 11), // vel_v_max
+                    GetValue(rov_axis, 12), // vel_w_max
+                    GetValue(rov_axis, 13), // vel_r_max
+                    GetValue(rov_axis, 14), // acc_u_max
+                    GetValue(rov_axis, 15), // acc_v_max
+                    GetValue(rov_axis, 16), // acc_w_max
+                    GetValue(rov_axis, 17), // acc_r_max
+                }
+            ];
+        }
+        */
         private int GetValue(int[] array, int index)
         {
             return index < array.Length ? array[index] : 0;

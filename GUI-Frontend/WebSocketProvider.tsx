@@ -108,6 +108,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       Power_temp: 0,
     },
   });
+  const [stateData, setStateData] = useState<{
+    ROVConState: boolean | false;
+    ManiConState: boolean | false;
+    ROVState: boolean | false;
+  }>({
+    ROVConState: false,
+    ManiConState: false,
+    ROVState: false,
+  });
 
   // Function to send a message to the backend via WebSocket
   const sendMessage = (message: object) => {
@@ -135,6 +144,39 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       socketRef.current.onmessage = (event) => {
         // Parse the incoming data from JSON
         const data = JSON.parse(event.data);
+
+        setStateData((prevData) => {
+          const updatedData = { ...prevData };
+
+          for (const item of data) {
+            if (!item || typeof item !== 'object' || !item.Type) {
+              continue;
+            }
+
+            switch (item.Type) {
+              case 'ROVConState':
+                updatedData.ROVConState = item.value;
+                console.log('Updated ROV controller state:', item.value);
+                break;
+
+              case 'ManiConState':
+                updatedData.ManiConState = item.value;
+                console.log('Updated Mani controller state:', item.value);
+                break;
+
+              case 'ROVState':
+                updatedData.ROVState = item.value;
+                console.log('Updated Mani controller state:', item.value);
+                break;
+
+              default:
+                console.warn(`1Received unknown data type: ${item.Type}`, item);
+                break;
+            }
+          }
+
+          return updatedData;
+        });
 
         // Update the state with the incoming data if the value is defined
         setSensorData((prevData) => {
@@ -210,7 +252,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   return (
     // Provide the sensor data to the context, so any child component can access it
-    <WebSocketContext.Provider value={{ sensorData, sendMessage }}>
+    <WebSocketContext.Provider value={{ sensorData, stateData, sendMessage }}>
       {children} {/* Render child components that will have access to the context */}
     </WebSocketContext.Provider>
   );
@@ -218,6 +260,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
 // Custom hook to get the full sensor data object
 export const useSensorData = () => useContext(WebSocketContext).sensorData;
+
+export const useStateData = () => useContext(WebSocketContext).stateData;
 
 export const batteryDataRight = () => useContext(WebSocketContext).sensorData.DATA12VRIGHT;
 

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Backend.Infrastructure.Interface;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
 namespace Backend.Translation
 {  
@@ -115,6 +116,12 @@ namespace Backend.Translation
                                 Motor_temp = Math.Round(Convert.ToDouble(values[1])/100,2),
                                 Depth = Math.Round(Convert.ToDouble(values[2])/100, 2) },
 
+                131 => new { Type = "AUTOTUNING", 
+                                Degree_of_Freedom = Convert.ToDouble(values[0]), //check table (surge, sway...)
+                                KP = Math.Round(Convert.ToDouble(values[1])/100, 2),
+                                KI = Math.Round(Convert.ToDouble(values[2])/100, 2),
+                                KD = Math.Round(Convert.ToDouble(values[2])/100, 2)},
+
                 135 => new { Type = "AKSELERASJON", Roll = values[0], Pitch = values[1], Yaw = values[2] },// doesn't look like this is used in GUI
 
                 136 => new { Type = "GYRO", Roll = values[0], Pitch = values[1], Yaw = values[2] },// doesn't look like this is used in GUI
@@ -137,7 +144,6 @@ namespace Backend.Translation
                                 PRESSURE_Errors = SetErrors((List<bool>)values[2], 2),              //List of Error strings
                                 Leak_Errors = SetErrors((List<bool>)values[3], 3) },                //List of Error strings
 
-                // CommunicationController Cards Temperature.
                 145 => new { Type = "COMTEMP", 
                                 Com_temp = Math.Round(Convert.ToDouble(values[0]), 2) },      //*C
 

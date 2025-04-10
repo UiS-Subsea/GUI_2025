@@ -39,6 +39,7 @@ class TaskManager:
         self.manual_flag = manual_flag
         self.mode_flag = mode_flag
         self.active_task_thread = None  # Reference to the running thread
+        self.image_save_thread = None
         self.thread_watcher = thread_watcher
         self.id = id
 
@@ -57,9 +58,9 @@ class TaskManager:
             "START_CAMERA": self.start_camera,
             "START_TRANSECT": self.start_transect,
             "START_DOCKING": self.start_docking,
-            "START_SEAGRASS": self.start_seagrass, # Not in use.
             "START_TEST": self.start_test_camera, # Not in use.
-            "START_MANUAL": self.start_manual
+            "START_MANUAL": self.start_manual,
+            "SAVE_IMAGE": self.save_image,
         }
 
         if command in valid_commands:
@@ -99,13 +100,10 @@ class TaskManager:
         self.manual_flag.value = 0
         self.start_task_in_thread(self.execution.docking)
 
-    def start_seagrass(self): # This is not in use right now.
-        self.stop_all_tasks()
-        print("[TASK MANAGER] Starting seagrass monitoring")
-        self.current_task = "SEAGRASS"
-        self.mode_flag.value = 4
-        self.manual_flag.value = 0
-        self.start_task_in_thread(self.execution.seagrass)
+    def save_image(self):
+        print("[TASK MANAGER] Save Image")
+        self.image_save_thread = threading.Thread(target=self.execution.save_image, daemon=True)
+        self.image_save_thread.start()
 
     def start_test_camera(self): # This is not in use right now.
         self.stop_all_tasks()

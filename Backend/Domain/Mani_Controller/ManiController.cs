@@ -8,8 +8,8 @@ namespace Backend.Domain.Mani_Controller
 
         private readonly ILogger<ManiController> _logger;
         private IntPtr JoystickPtr; 
-        private int joystickIndex = 1; // The Second Joystick Becomes Manipulator-Controller.
-        private int JoystickId; // Store The Xbox One Controllers InstanceID, For reconnecting The Same Controller.
+        private int joystickIndex = -1;
+        private int JoystickId; // Store The Xbox One Controllers InstanceID.
         public bool IsConnected => JoystickPtr != IntPtr.Zero && SDL.SDL_JoystickGetAttached(JoystickPtr) == SDL.SDL_bool.SDL_TRUE;
 
         private const int joystickDeadzone = 15; // The deadzone Value.
@@ -25,13 +25,15 @@ namespace Backend.Domain.Mani_Controller
             _logger = logger;
         }
 
-        public void InitializeJoystick()
+        public void InitializeJoystick(int index)
         {
             if (SDL.SDL_NumJoysticks() <= 0)
             {
                 _logger.LogWarning($"There are no Joystick available/connected.");
                 return;
             }
+
+            joystickIndex = index;
             JoystickPtr = SDL.SDL_JoystickOpen(joystickIndex);
             if (JoystickPtr == IntPtr.Zero)
             {
@@ -41,32 +43,24 @@ namespace Backend.Domain.Mani_Controller
             {
                 // Finds the Instance ID and stores it.
                 JoystickId = SDL.SDL_JoystickInstanceID(JoystickPtr);
-                _logger.LogInformation($"Mani Joystick InstanceID:  {JoystickId} connected.");
             }
-            _logger.LogInformation("There are: " + SDL.SDL_NumJoysticks() + "  Controllers");
+            if (SDL.SDL_JoystickRumble(JoystickPtr, 65535, 65535, 400) == 0)
+            {
+                Thread.Sleep(500);
+                SDL.SDL_JoystickRumble(JoystickPtr, 0, 0, 0);
+                Thread.Sleep(500);
+                SDL.SDL_JoystickRumble(JoystickPtr, 65535, 65535, 400);
+            }
+            else
+            {
+                _logger.LogWarning("Faild to trigger vabration: " + SDL.SDL_GetError());
+            }
+            _logger.LogInformation("The Manipulator Joystick Has Been Connected.");
         }
 
-        public bool CheckJoystickConnection()
+        public int GetJoystickId()
         {
-            // Check if joystick is still attached and matches the expected instance ID
-            if (!IsConnected)
-            {
-                _logger.LogInformation("Joystick disconnected. Reconnecting...");
-                for (int i = 0; i < SDL.SDL_NumJoysticks(); i++)
-                {
-                    int newInstanceID = SDL.SDL_JoystickGetDeviceInstanceID(i);
-                    if (JoystickId == newInstanceID)
-                    {
-                        joystickIndex = i;
-                        InitializeJoystick();
-                        _logger.LogInformation($"Reconnected joystick with matching InstanceID at index {i}");
-                        return true;
-                    }
-                }
-                _logger.LogInformation("No matching joystick found. Waiting for reconnection...");
-                return false;
-            }
-            return true;
+            return JoystickId;
         }
 
         public bool ProcessEvents(SDL.SDL_Event e, CancellationToken cancellationToken)
@@ -243,6 +237,8 @@ namespace Backend.Domain.Mani_Controller
             {
                 SDL.SDL_JoystickClose(JoystickPtr);
                 JoystickPtr = IntPtr.Zero; // Reset pointer to avoid invalid access
+                joystickIndex = -1;
+                _logger.LogInformation("The Manipulator Joystick Has Been DisConnected.");
             }
         }
                 public bool IsRelevantEvent(SDL.SDL_Event e)

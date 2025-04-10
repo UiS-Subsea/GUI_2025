@@ -1,4 +1,5 @@
-﻿using Backend.Infrastructure.Interface;
+﻿using Backend.Infrastructure;
+using Backend.Infrastructure.Interface;
 using SDL2;
 
 namespace Backend.Domain.ROV_Controller
@@ -8,8 +9,8 @@ namespace Backend.Domain.ROV_Controller
 
         private readonly ILogger<RovController> _logger;
         private IntPtr JoystickPtr; 
-        private int joystickIndex = 0; // The First Joystick Becomes Rov-Controller.
-        private int JoystickId; // Store The Xbox One Controllers InstanceID, For reconnecting The Same Controller.
+        private int joystickIndex = -1;
+        private int JoystickId; // Store The Xbox One Controllers InstanceID.
         public bool IsConnected => JoystickPtr != IntPtr.Zero && SDL.SDL_JoystickGetAttached(JoystickPtr) == SDL.SDL_bool.SDL_TRUE;
 
         private const int joystickDeadzone = 15; // The deadzone Value.
@@ -25,13 +26,15 @@ namespace Backend.Domain.ROV_Controller
             _logger = logger;
         }
 
-        public void InitializeJoystick()
+        public void InitializeJoystick(int index)
         {
+
             if (SDL.SDL_NumJoysticks() <= 0)
             {
                 _logger.LogWarning($"There are no Joystick available/connected.");
                 return;
             }
+            joystickIndex = index;
             JoystickPtr = SDL.SDL_JoystickOpen(joystickIndex);
             if (JoystickPtr == IntPtr.Zero)
             {
@@ -41,32 +44,18 @@ namespace Backend.Domain.ROV_Controller
             {
                 // Finds the Instance ID and stores it.
                 JoystickId = SDL.SDL_JoystickInstanceID(JoystickPtr);
-                _logger.LogInformation($"ROV JoystickID: {JoystickId} connected.");
             }
-            _logger.LogInformation("There are: " + SDL.SDL_NumJoysticks() + "  Controllers");
+            if (SDL.SDL_JoystickRumble(JoystickPtr, 65535, 65535, 200) == -1)
+            {
+                _logger.LogWarning("Faild to trigger vabration: " + SDL.SDL_GetError());
+            }
+            _logger.LogInformation("The ROV Joystick Has Been Connected.");
+
         }
 
-        public bool CheckJoystickConnection()
+        public int GetJoystickId()
         {
-            // Check if joystick is still attached and matches the expected instance ID
-            if (!IsConnected)
-            {
-                _logger.LogInformation("Joystick disconnected. Reconnecting...");
-                for (int i = 0; i < SDL.SDL_NumJoysticks(); i++)
-                {
-                    int newInstanceID = SDL.SDL_JoystickGetDeviceInstanceID(i);
-                    if (JoystickId == newInstanceID)
-                    {
-                        joystickIndex = i;
-                        InitializeJoystick();
-                        _logger.LogInformation($"Reconnected joystick with matching InstanceId at index {i}");
-                        return true;
-                    }
-                }
-                _logger.LogInformation("No matching joystick found. Waiting for reconnection...");
-                return false;
-            }
-            return true;
+            return JoystickId;
         }
 
         public bool ProcessEvents(SDL.SDL_Event e, CancellationToken cancellationToken)
@@ -241,6 +230,8 @@ namespace Backend.Domain.ROV_Controller
             {
                 SDL.SDL_JoystickClose(JoystickPtr);
                 JoystickPtr = IntPtr.Zero; // Reset pointer to avoid invalid access
+                joystickIndex = -1;
+                _logger.LogInformation("The ROV Joystick Has Been DisConnected.");
             }
         }
         public bool IsRelevantEvent(SDL.SDL_Event e)

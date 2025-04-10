@@ -16,6 +16,8 @@ namespace Backend.Infrastructure
         private readonly int _port;
         private readonly ILogger<WebSocketServer> _logger;
         private readonly IModeService _modeService;
+        private readonly List<string> _pendingMessages = new List<string>();
+
 
         /// <summary>
         /// Initializes a new WebSocket server instance on the specified port.
@@ -62,6 +64,14 @@ namespace Backend.Infrastructure
 
                             // Add the client WebSocket to the dictionary
                             _connectedClients.TryAdd(webSocket, 0);
+
+                            foreach (var pendingMessage in _pendingMessages)
+                            {
+                                await SendMessageToClient(webSocket, pendingMessage, cancellationToken);
+                            }
+
+                            // Clear the pending message list once they've been sent
+                            _pendingMessages.Clear();
 
                             // Handle the client communication in a separate task
                             _ = HandleClientAsync(webSocket, cancellationToken);
@@ -170,30 +180,53 @@ namespace Backend.Infrastructure
                 }
             }
         }
+        /// <summary>
+        /// Sends a message to a specific WebSocket client.
+        /// </summary>
+        /// <param name="socket">The WebSocket connection to the client.</param>
+        /// <param name="message">The message to send, serialized as a string.</param>
+        /// <param name="cancellationToken">A cancellation token to signal the task cancellation.</param>
+        /// <returns>A task representing the asynchronous operation of sending the message.</returns>
+        private async Task SendMessageToClient(WebSocket socket, string message, CancellationToken cancellationToken)
+        {
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            await socket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Text, true, cancellationToken);
+        }
 
         /// <summary>
         /// Sends a message to all connected WebSocket clients.
         /// </summary>
         /// <typeparam name="T">Type of message being sent (will be serialized to JSON).</typeparam>
         /// <param name="message">The message object to send.</param>
+        /// <param name="ensureDelivery">
+        /// If true, the message is stored and sent later if no clients are currently connected.
+        /// Otherwise, the message is discarded if no clients are connected.
+        /// </param>
         /// <param name="cancellationToken">Token to cancel sending if needed.</param>
-        public async Task SendToAllClientsAsync<T>(T message, CancellationToken cancellationToken)
+        public async Task SendToAllClientsAsync<T>(T message, CancellationToken cancellationToken,  bool ensureDelivery = false)
         {
             string json = JsonSerializer.Serialize(message); // Serialize the message into JSON
-            byte[] data = Encoding.UTF8.GetBytes(json); // Convert JSON to bytes
-
-            // Iterate over connected clients safely
-            foreach (var socket in _connectedClients.Keys.ToList()) // Copy to avoid modification issues
+            if (ensureDelivery && _connectedClients.IsEmpty)
             {
-                if (socket.State == WebSocketState.Open)
+                _pendingMessages.Add(json);
+            }
+            else
+            {
+                byte[] data = Encoding.UTF8.GetBytes(json); // Convert JSON to bytes
+
+                // Iterate over connected clients safely
+                foreach (var socket in _connectedClients.Keys.ToList()) // Copy to avoid modification issues
                 {
-                    // Send the message to the client
-                    await socket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Text, true, cancellationToken);
-                }
-                else
-                {
-                    // Remove disconnected clients
-                    _connectedClients.TryRemove(socket, out _);
+                    if (socket.State == WebSocketState.Open)
+                    {
+                        // Send the message to the client
+                        await socket.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Text, true, cancellationToken);
+                    }
+                    else
+                    {
+                        // Remove disconnected clients
+                        _connectedClients.TryRemove(socket, out _);
+                    }
                 }
             }
         }

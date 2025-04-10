@@ -23,12 +23,14 @@ namespace Backend.Infrastructure
 
         // Expose the sensor data as a ChannelReader so other services can process it
         public ChannelReader<byte[]> SensorData => _sensorDataChannel.Reader;
+        public WebSocketServer _webSocketServer;
 
-        public Network(ILogger<Network> logger, IConfiguration config)
+        public Network(ILogger<Network> logger, IConfiguration config, WebSocketServer webSocketServer)
         {
             _logger = logger;
             _connectIP = config["Network:IPAddress"] ?? "10.0.0.2"; // Read from config
             _port = int.TryParse(config["Network:Port"], out int port) ? port : 6900;
+            _webSocketServer = webSocketServer;
         }
 
         /// <summary>
@@ -66,13 +68,16 @@ namespace Backend.Infrastructure
                     await _client.ConnectAsync(_connectIP, _port, cancellationToken);
                     _stream = _client.GetStream();
                     _logger.LogInformation($"Connected to {_connectIP}:{_port}");
+                    await _webSocketServer.SendToAllClientsAsync(
+                        new List<object> {new { Type = "ROVState", value = true } },
+                        cancellationToken, true);
 
                     return; // Successfully connected, exit the loop
                 }
                 catch (TaskCanceledException)
                 {
                     _logger.LogInformation("Shutting down gracefully...");
-                    return; // Exit cleanly
+                    return;
                 }
                 catch (Exception ex)
                 {
@@ -213,6 +218,9 @@ namespace Backend.Infrastructure
                 _client = null;
                 _stream = null;
             }
+            await _webSocketServer.SendToAllClientsAsync(
+                        new List<object> {new { Type = "ROVState", value = false } },
+                        cancellationToken, true);
 
             _logger.LogInformation("Reconnecting...");
             _isStarted = false;  // Reset the flag so tasks can be restarted

@@ -6,7 +6,7 @@ namespace Backend.Infrastructure
     {
         // The mode is stored in a private field
         private Mode _currentMode = Mode.Manual;
-
+        
         // Method to switch to Manual mode
         public void SetModeToManual()
         {
