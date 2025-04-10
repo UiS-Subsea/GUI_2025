@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Button } from '../Button';
+import { Button } from '../../components/Button';
 import { useDriveMode } from '../../contexts/DriveModeContext';
 import { useWebSocketCommand } from '../../../../WebSocketManager';
 import { WebSocketContext } from '../../../../WebSocketProvider';
