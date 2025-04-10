@@ -3,7 +3,9 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { NavigateButton } from '../react-components/NavigateButton';
 import { DarkModeToggle } from '../react-components/navbar-items/DarkModeToggle';
-import CamWindowButton from '../react-components/CamWindowButton';
+import CamWindowButton from '../components/CamWindowButton';
+import { PIDGrid } from '../react-components/Settings/PID-Grid';
+import { MPCGrid } from '../react-components/Settings/MPC-Grid';
 
 export const Settings: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void }> = ({
   isDarkMode,
@@ -12,7 +14,7 @@ export const Settings: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => voi
   return (
     <>
       <div className='w-screen h-screen bg-lightBg dark:bg-darkBg'>
-        <div className='w-screen h-[70px] pt-2 flex flex-row gap-2 font-silkscreen bg-lightBg dark:bg-darkBg justify-center items-center transition-colors duration-300'>
+        <div className='w-screen h-[70px] p-2 flex flex-row gap-2 font-silkscreen bg-lightBg dark:bg-darkBg justify-center items-center transition-colors duration-300'>
           <div className='rounded-md sm:w-[30px] max-w-[80px] md:w-full h-full items-center justify-center flex'>
             {isDarkMode ? (
               <img src='./assets/images/logo.png' width={60} alt='dark logo' />
@@ -43,9 +45,18 @@ export const Settings: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => voi
             <DarkModeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
           </div>
         </div>
-
-        <div className='p-6'>
-          <h1 className='text-lightText dark:text-white text-xl mb-4'> XXXX Settings</h1>
+        {/* // settings page */}
+        <div className='w-full h-full flex flex-col justify-center items-center text-white font-silkscreen'>
+          <div className='w-full h-full items-center justify-center flex flex-col pl-4 pr-4'>
+            <div className='w-full h-full'>
+              <PIDGrid />
+            </div>
+          </div>
+          <div className='w-full h-full items-center justify-center flex flex-col pr-4 pl-4'>
+            <div className='w-full h-full'>
+              <MPCGrid />
+            </div>
+          </div>
         </div>
       </div>
     </>
