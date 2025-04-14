@@ -17,18 +17,21 @@ namespace Backend.Infrastructure
         private readonly ILogger<WebSocketServer> _logger;
         private readonly IModeService _modeService;
         private readonly List<string> _pendingMessages = new List<string>();
+        private readonly ICommandQueueService<Dictionary<string, object>> _commandQueue;
 
 
         /// <summary>
         /// Initializes a new WebSocket server instance on the specified port.
         /// </summary>
         /// <param name="port">The port on which the server should listen for WebSocket connections.</param>
-        public WebSocketServer(ILogger<WebSocketServer> logger, IModeService modeService, int port = 5009)
+        public WebSocketServer(ILogger<WebSocketServer> logger, IModeService modeService, 
+        ICommandQueueService<Dictionary<string, object>> commandQueue, int port = 5009)
         {
             _port = port;
             _httpListener = new HttpListener();
             _logger = logger;
             _modeService = modeService;
+            _commandQueue = commandQueue;
 
             // WebSocket connections will be accepted at ws://localhost:{port}/ws/
             _httpListener.Prefixes.Add($"http://localhost:{_port}/ws/");
@@ -131,32 +134,12 @@ namespace Backend.Infrastructure
                     string receivedMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
                     _logger.LogInformation($"Received: {receivedMessage}");
 
-                    // Deserialize the received JSON string into an object
                     try
                     {
-                        var messageObject = JsonSerializer.Deserialize<Dictionary<string, string>>(receivedMessage);
-
-                        // Check if the Mode key exists and handle accordingly
-                        if (messageObject != null && messageObject.ContainsKey("Mode"))
+                        var messageObject = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(receivedMessage);
+                        if (messageObject != null)
                         {
-                            string mode = messageObject["Mode"];
-
-                            if (mode == "MANUAL") // 0 for Manual
-                            {
-                                _modeService.SetModeToManual();
-                            }
-                            else if (mode == "AUTO") // 1 for Autonomous
-                            {
-                                _modeService.SetModeToAutonomous();
-                            }
-                            else
-                            {
-                                _logger.LogWarning($"Unrecognized mode value: {mode}");
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Received message does not contain 'Mode' key.");
+                            await HandleMessage(messageObject);
                         }
                     }
                     catch (JsonException ex)
@@ -180,6 +163,86 @@ namespace Backend.Infrastructure
                 }
             }
         }
+        private async Task HandleMessage(Dictionary<string, JsonElement> messageObject)
+        {
+            if (messageObject.Count != 1)
+            {
+                _logger.LogWarning("Received message contains more than one key. Expected only one.");
+                return;
+            }
+
+            var (key, value) = messageObject.First();
+
+            switch (key)
+            {
+                case "Mode":
+                    string mode = value.GetString();
+                    switch (mode)
+                    {
+                        case "MANUAL":
+                            _modeService.SetModeToManual();
+                            break;
+                        case "AUTO":
+                            _modeService.SetModeToAutonomous();
+                            break;
+                        default:
+                            _logger.LogWarning($"Unrecognized mode value: {mode}");
+                            break;
+                    }
+                    break;
+                case "reg_mode_setting":
+                case "mpc_settings":
+                    if (value.ValueKind == JsonValueKind.Array)
+                    {
+                        var floatArray = value.EnumerateArray()
+                        .Select(x => (float)x.GetDouble())
+                        .ToArray();
+
+                        await _commandQueue.EnqueueAsync(new Dictionary<string, object>
+                        {
+                            { key, floatArray }
+                        });
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Expected array for '{key}', but got {value.ValueKind}");
+                    }
+                    break;
+
+                case "tilt":
+                case "reg_mode":
+                case "autotune":
+                case "pid_settings":
+                    if (value.ValueKind == JsonValueKind.Array)
+                    {
+                        // Handle array case
+                        var intArray  = value.EnumerateArray().Select(x => x.GetInt32()).ToArray();
+                        await _commandQueue.EnqueueAsync(new Dictionary<string, object>
+                        {
+                            { key, intArray  }
+                        });
+                    }
+                    else if (value.ValueKind == JsonValueKind.Number)
+                    {
+                        // Handle single integer case
+                        int singleValue = value.GetInt32();
+                        await _commandQueue.EnqueueAsync(new Dictionary<string, object>
+                        {
+                            { key, new int[] { singleValue } }
+                        });
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Expected array or single int for '{key}', but got {value.ValueKind}");
+                    }
+                    break;
+
+                default:
+                    _logger.LogWarning($"Unhandled message key: {key}");
+                    break;
+                    }
+        }
+
         /// <summary>
         /// Sends a message to a specific WebSocket client.
         /// </summary>

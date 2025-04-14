@@ -1,6 +1,6 @@
 import threading
 import time
-from camerafeed.Main_Classes.autonomous_transect_main import AutonomousTransect
+from camerafeed.Main_Classes.autonomous_transect_main_old import AutonomousTransect
 from camerafeed.Main_Classes.grass_monitor_main import SeagrassMonitor
 from camerafeed.Main_Classes.autonomous_docking_main import AutonomousDocking
 import cv2
@@ -278,7 +278,7 @@ class ExecutionClass:
 
         elif name == "StereoR":
             if self.stereo_right_queue.full():
-                self.stereo_right_queue.get()  # Remove the oldest item to make space
+                self.stereo_right_queue.get()
             self.stereo_right_queue.put(frame)
 
         elif name == "Down":
@@ -334,22 +334,22 @@ class ExecutionClass:
     def sleep_func(self):
         threading.Timer(1000, self.sleep_func).start()
 
-    def transect(self):
+    def pipeline(self):
         self.done = False
-        self.Camera.start_down_cam()  # TODO should be down frame
+        self.Camera.start_manipulator_cam()
         while not self.done and self.manual_flag.value == 0:
-            self.update_down()  # TODO Should be down frame
-            transect_frame, driving_data_packet = self.AutonomousTransect.run(
-                self.frame_down
+            self.update_manipulator()
+            pipeline_frame, driving_data_packet = self.AutonomousTransect.run(
+                self.frame_manipulator
             )
 
             # Check if the returned frame or data is None, skip the iteration if invalid
-            if transect_frame is None or driving_data_packet is None:
+            if pipeline_frame is None or driving_data_packet is None:
                 print("Error: Invalid frame or data received. Skipping this loop iteration.")
                 continue  # Skip this loop iteration and continue with the next
 
-            self.show(transect_frame, "Down")
-            self.send_data_to_rov(driving_data_packet)
+            self.show(pipeline_frame, "Manipulator")
+            self.send_data_to_rov([int(round(x)) for x in driving_data_packet])
         else:
             self.stop_everything()
 
@@ -365,19 +365,18 @@ class ExecutionClass:
             # Needs manipulator L, and Down Cameras
             self.update_manipulator()
             self.update_down()
-            docking_frame, frame_under, driving_data_packet = self.Docking.run(
+            manipulator_frame, down_under, driving_data_packet = self.Docking.run(
                 self.frame_manipulator, self.frame_down
-            )  # TODO should be down camera
+            )
 
             # Check if the frames are valid
-            if docking_frame is None or frame_under is None:
+            if manipulator_frame is None or down_under is None:
                 print("Error: Invalid frames received. Skipping this loop iteration.")
-                continue  # Skip this loop iteration and continue with the next
+                continue
 
-            self.show(docking_frame, "StereoL")
-            self.show(frame_under, "Down")
+            self.show(manipulator_frame, "Manipulator")
+            self.show(down_under, "Down")
             self.send_data_to_rov(driving_data_packet)
-            #self.show(frame_under, "Frame Under")
         else:
             self.stop_everything()
 
@@ -430,7 +429,7 @@ class ExecutionClass:
         while not self.done:  # Check if stop event is set
             self.update_down()  # Update the frame
             self.show(self.frame_down, "Down")
-            time.sleep(0.01) # check to find ideal sleep time.
+            time.sleep(0.01)
 
     def camera_thread_manipulator(self):
         while not self.done:  # Check if stop event is set
@@ -442,7 +441,7 @@ class ExecutionClass:
         while not self.done:  # Check if stop event is set
             self.update_stereo_L()  # Update the frame
             self.show(self.frame_stereoL, "StereoL")
-            time.sleep(0.01) # check to find ideal sleep time.
+            time.sleep(0.01)
 
     def camera_thread_stereoR(self):
         while not self.done:  # Check if stop event is set

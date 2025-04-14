@@ -32,10 +32,10 @@ def main():
     manual_flag = multiprocessing.Value("i", 1)  # 1 = Manual mode, 0 = Autonomy
 
     # Video Frames to be sent to .NET
-    stereo_left_queue = multiprocessing.Queue(100)
-    stereo_right_queue = multiprocessing.Queue(100)
-    down_queue = multiprocessing.Queue(100)
-    manipulator_queue = multiprocessing.Queue(100)
+    stereo_left_queue = multiprocessing.Queue(30)
+    stereo_right_queue = multiprocessing.Queue(30)
+    down_queue = multiprocessing.Queue(30)
+    manipulator_queue = multiprocessing.Queue(30)
     frame_queue = [stereo_left_queue, stereo_right_queue, down_queue, manipulator_queue]
 
     # 0 = No Mode, 1 = Manual, 2 = Docking, 3 = transect, 4 = SeaGrass, 5 = All Cameras, 6 = Test Camera

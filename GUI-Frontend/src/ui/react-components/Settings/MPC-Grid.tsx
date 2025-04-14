@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
+import { WebSocketContext } from '../../../../WebSocketProvider';
 
 interface MPCRow {
   name: string;
@@ -32,6 +33,8 @@ export const MPCGrid = () => {
     { name: 'Maximum acceleration', AU: 0, AV: 0, AW: 0, AR: 0 },
   ]);
 
+  const { sendMessage } = useContext(WebSocketContext);
+
   const handleValueChange = (rowIndex: number, param: string, value: string) => {
     const newValue = parseFloat(value) || 0;
     setMPCData((prevData) => {
@@ -47,7 +50,27 @@ export const MPCGrid = () => {
   const handleSendAll = () => {
     // Send all values together, even if some fields are not filled
     console.log('Sending all MPC values:', MPCData);
-    // TODO: Implement the logic to send all values to the backend
+    const allValues = MPCData.flatMap((row) => [
+      row.QX,
+      row.QY,
+      row.QZ,
+      row.QPSI,
+      row.RU,
+      row.RV,
+      row.RW,
+      row.RR,
+      row.Dt,
+      row.N,
+      row.VU,
+      row.VV,
+      row.VW,
+      row.VR,
+      row.AU,
+      row.AV,
+      row.AW,
+      row.AR,
+    ]).filter((value) => value !== undefined) as number[];
+    sendMessage({ mpc_settings: allValues });
   };
 
   return (

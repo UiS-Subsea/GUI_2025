@@ -28,6 +28,7 @@ export const DriveMode = () => {
     if (ws) {
       ws.sendCommand('START_MANUAL'); // Send "manual" command
       sendMessage({ Mode: 'MANUAL' }); // Send mode message to .NET backend
+      sendMessage({ reg_mode: [0] });
     } else {
       console.log('WebSocket is not connected.');
     }
@@ -36,14 +37,24 @@ export const DriveMode = () => {
     if (ws) {
       ws.sendCommand('START_DOCKING');
       sendMessage({ Mode: 'AUTO' });
+      sendMessage({ reg_mode: [0] });
     } else {
       console.log('WebSocket is not connected.');
     }
   };
-  const sendTransectCommand = () => {
+  const sendPipelineCommand = () => {
     if (ws) {
-      ws.sendCommand('START_TRANSECT');
+      ws.sendCommand('START_PIPELINE');
       sendMessage({ Mode: 'AUTO' });
+      sendMessage({ reg_mode: [0] });
+    } else {
+      console.log('WebSocket is not connected.');
+    }
+  };
+  const sendAutotuneCommand = () => {
+    if (ws) {
+      sendMessage({ Mode: 'AUTO' });
+      sendMessage({ reg_mode: [3] });
     } else {
       console.log('WebSocket is not connected.');
     }
@@ -84,12 +95,12 @@ export const DriveMode = () => {
             selected={selectedMode === 'Automatic'}
           />
           <Button
-            name='Transect'
+            name='Pipeline'
             action={() => {
-              handleModeChange('Transect');
-              sendTransectCommand();
+              handleModeChange('Pipeline');
+              sendPipelineCommand();
             }}
-            selected={selectedMode === 'Transect'}
+            selected={selectedMode === 'Pipeline'}
           />
           <Button
             name='Docking'
@@ -101,7 +112,10 @@ export const DriveMode = () => {
           />
           <Button
             name='Autotuning'
-            action={() => handleModeChange('Autotuning')}
+            action={() => {
+              handleModeChange('Autotuning');
+              sendAutotuneCommand();
+            }}
             selected={selectedMode === 'Autotuning'}
           />
         </div>

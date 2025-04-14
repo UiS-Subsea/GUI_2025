@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
+import { WebSocketContext } from '../../../../WebSocketProvider';
 
 interface PIDValues {
   KI: number;
@@ -18,10 +19,12 @@ export const PIDGrid = () => {
     { name: 'Surge', currentValues: { KI: 0, KD: 0, KP: 0 }, setAutotuner: { KI: 0, KD: 0, KP: 0 }, stepsize: 0 },
     { name: 'Sway', currentValues: { KI: 0, KD: 0, KP: 0 }, setAutotuner: { KI: 0, KD: 0, KP: 0 }, stepsize: 0 },
     { name: 'Heave', currentValues: { KI: 0, KD: 0, KP: 0 }, setAutotuner: { KI: 0, KD: 0, KP: 0 }, stepsize: 0 },
-    { name: 'Yaw', currentValues: { KI: 0, KD: 0, KP: 0 }, setAutotuner: { KI: 0, KD: 0, KP: 0 }, stepsize: 0 },
-    { name: 'Pitch', currentValues: { KI: 0, KD: 0, KP: 0 }, setAutotuner: { KI: 0, KD: 0, KP: 0 }, stepsize: 0 },
     { name: 'Roll', currentValues: { KI: 0, KD: 0, KP: 0 }, setAutotuner: { KI: 0, KD: 0, KP: 0 }, stepsize: 0 },
+    { name: 'Pitch', currentValues: { KI: 0, KD: 0, KP: 0 }, setAutotuner: { KI: 0, KD: 0, KP: 0 }, stepsize: 0 },
+    { name: 'Yaw', currentValues: { KI: 0, KD: 0, KP: 0 }, setAutotuner: { KI: 0, KD: 0, KP: 0 }, stepsize: 0 },
   ]);
+
+  const { sendMessage } = useContext(WebSocketContext);
 
   const handleValueChange = (
     rowIndex: number,
@@ -50,7 +53,7 @@ export const PIDGrid = () => {
   };
 
   const handleStart = (rowIndex: number) => {
-    // TODO: Implement the logic to start the autotuner value reading
+    sendMessage({ autotune: [1, 0, rowIndex, pidData[rowIndex].stepsize] });
     console.log('Starting with values for', pidData[rowIndex].name, pidData[rowIndex].setAutotuner);
   };
 
@@ -62,18 +65,19 @@ export const PIDGrid = () => {
 
     // Get the current values for the selected row
     const { KI, KD, KP } = pidData[rowIndex].currentValues;
+    const scaledKI = KI * 100;
+    const scaledKD = KD * 100;
+    const scaledKP = KP * 100;
 
-    const settingsDict: { [key: string]: number[] } = {
-      Pid_settings: [rowIndex, KI, KD, KP],
-    };
+    const pidSettings = [rowIndex, scaledKP, scaledKI, scaledKD];
 
-    console.log('Sending formatted data for', pidData[rowIndex].name, ':', settingsDict);
+    console.log('Sending formatted data for', pidData[rowIndex].name, ':', pidSettings);
 
-    // TODO: implement the logic to send the data to the backend
+    sendMessage({ pid_settings: pidSettings });
   };
 
   const handleCancel = (rowIndex: number) => {
-    // TODO: Implement cancel logic for autotuner
+    sendMessage({ autotune: [0, 1, rowIndex, pidData[rowIndex].stepsize] });
     console.log('Canceling autotuner for', pidData[rowIndex].name, pidData[rowIndex].setAutotuner);
   };
 
@@ -103,13 +107,13 @@ export const PIDGrid = () => {
           </tr>
           <tr className='bg-gray-800'>
             <th className='py-2 px-4 border-b border-r border-gray-700'></th>
+            <th className='py-2 px-4 border-b border-r border-gray-700'>KP</th>
             <th className='py-2 px-4 border-b border-r border-gray-700'>KI</th>
             <th className='py-2 px-4 border-b border-r border-gray-700'>KD</th>
-            <th className='py-2 px-4 border-b border-r border-gray-700'>KP</th>
             <th className='py-2 px-4 border-b border-r border-gray-700'>Actions</th>
+            <th className='py-2 px-4 border-b border-r border-gray-700'>KP</th>
             <th className='py-2 px-4 border-b border-r border-gray-700'>KI</th>
             <th className='py-2 px-4 border-b border-r border-gray-700'>KD</th>
-            <th className='py-2 px-4 border-b border-r border-gray-700'>KP</th>
             <th className='py-2 px-4 border-b border-r border-gray-700'>Stepsize</th>
             <th className='py-2 px-4 border-b border-gray-700'>Actions</th>
           </tr>
@@ -120,6 +124,14 @@ export const PIDGrid = () => {
               <td className='py-2 px-4 border-b border-r border-gray-700 font-medium'>{row.name}</td>
 
               {/* Current Values */}
+              <td className='py-2 px-4 border-b border-r border-gray-700'>
+                <input
+                  type='number'
+                  value={row.currentValues.KP}
+                  onChange={(e) => handleValueChange(rowIndex, 'currentValues', 'KP', e.target.value)}
+                  className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                />
+              </td>
               <td className='py-2 px-4 border-b border-r border-gray-700'>
                 <input
                   type='number'
@@ -137,14 +149,6 @@ export const PIDGrid = () => {
                 />
               </td>
               <td className='py-2 px-4 border-b border-r border-gray-700'>
-                <input
-                  type='number'
-                  value={row.currentValues.KP}
-                  onChange={(e) => handleValueChange(rowIndex, 'currentValues', 'KP', e.target.value)}
-                  className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
-                />
-              </td>
-              <td className='py-2 px-4 border-b border-r border-gray-700'>
                 <button
                   onClick={(e) => handleSend(rowIndex, e)}
                   className='px-2 py-1 bg-indigo-600 hover:bg-indigo-700 rounded text-white text-sm'
@@ -157,13 +161,13 @@ export const PIDGrid = () => {
               {shouldShowSetAutotuner(row.name) ? (
                 <>
                   <td className='py-2 px-4 border-b border-r border-gray-700'>
+                    <div className='text-center'>{row.setAutotuner.KP}</div>
+                  </td>
+                  <td className='py-2 px-4 border-b border-r border-gray-700'>
                     <div className='text-center'>{row.setAutotuner.KI}</div>
                   </td>
                   <td className='py-2 px-4 border-b border-r border-gray-700'>
                     <div className='text-center'>{row.setAutotuner.KD}</div>
-                  </td>
-                  <td className='py-2 px-4 border-b border-r border-gray-700'>
-                    <div className='text-center'>{row.setAutotuner.KP}</div>
                   </td>
 
                   {/* Stepsize */}

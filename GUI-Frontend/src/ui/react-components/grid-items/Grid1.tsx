@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDriveMode } from '../../contexts/DriveModeContext';
+import { WebSocketContext } from '../../../../WebSocketProvider';
 
 export const Grid1 = () => {
   // retrieve value from websocket when this is implemented
@@ -15,14 +16,27 @@ export const Grid1 = () => {
 
   // Waypoint tracking values
   const [waypointValues, setWaypointValues] = useState({
-    x: '',
-    y: '',
-    z: '',
-    psi: '',
+    x: 0,
+    y: 0,
+    z: 0,
+    psi: 0,
   });
 
   const [activeMode, setActiveMode] = useState<'trajectory' | 'waypoint'>('trajectory');
   const { isTrackingMode } = useDriveMode();
+  const { sendMessage } = useContext(WebSocketContext);
+
+  useEffect(() => {
+    if (!isTrackingMode) return;
+
+    if (activeMode === 'trajectory') {
+      sendMessage({ Mode: 'AUTO' });
+      sendMessage({ reg_mode: [2] });
+    } else if (activeMode === 'waypoint') {
+      sendMessage({ Mode: 'AUTO' });
+      sendMessage({ reg_mode: [1] });
+    }
+  }, [activeMode, isTrackingMode]);
 
   const handleStepSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -30,7 +44,7 @@ export const Grid1 = () => {
 
     console.log('Step value submitted:', stepValue);
     console.log('Speed value submitted:', speedValue);
-    // TODO: Send data to backend here
+    sendMessage({ reg_mode_setting: [0, 0, 0, 0, stepValue, speedValue] });
   };
 
   const handleWaypointSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -38,7 +52,9 @@ export const Grid1 = () => {
     if (!isTrackingMode) return;
 
     console.log('Waypoint values submitted:', waypointValues);
-    // TODO: Send data to backend here
+    sendMessage({
+      reg_mode_setting: [waypointValues['x'], waypointValues['y'], waypointValues['z'], waypointValues['psi'], 0, 0],
+    });
   };
 
   const handleWaypointChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +63,7 @@ export const Grid1 = () => {
     const { name, value } = e.target;
     setWaypointValues((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: parseFloat(value),
     }));
   };
 
