@@ -39,21 +39,6 @@ namespace Backend.Translation
             if (rovCommand.TryGetValue("IMU_Calibrate", out var imuObj) && imuObj is int[] imuCalibrate)
                 commands.Add(BuildIMUCalibratePacket(imuCalibrate));
 
-            if (rovCommand.TryGetValue("Regulator_Tuning", out var regulatorObj) && regulatorObj is int[] regulatorTuning)
-                commands.Add(BuildRegulatorTuningPacket(regulatorTuning));
-
-            if (rovCommand.TryGetValue("Toggle_All_Regulator", out var toggleAllObj) && toggleAllObj is int[] toggleAll)
-                commands.Add(BuildToggleAllRegulatorPacket(toggleAll));
-
-            if (rovCommand.TryGetValue("Toggle_Roll_Regulator", out var toggleRollObj) && toggleRollObj is int[] toggleRoll)
-                commands.Add(BuildToggleRollRegulatorPacket(toggleRoll));
-
-            if (rovCommand.TryGetValue("Toggle_Stamp_Regulator", out var toggleStampObj) && toggleStampObj is int[] toggleStamp)
-                commands.Add(BuildToggleStampRegulatorPacket(toggleStamp));
-
-            if (rovCommand.TryGetValue("Toggle_Depth_Regulator", out var toggleDepthObj) && toggleDepthObj is int[] toggleDepth)
-                commands.Add(BuildToggleDepthRegulatorPacket(toggleDepth));
-
             if (rovCommand.TryGetValue("Front_Light_On", out var frontLightObj) && frontLightObj is int[] frontLight)
                 commands.Add(BuildFrontLightPacket(frontLight));
 
@@ -68,6 +53,21 @@ namespace Backend.Translation
 
             if (rovCommand.TryGetValue("tilt", out var tiltObj) && tiltObj is int[] tiltData)
                 commands.Add(BuildCameraTiltPacket(tiltData));
+
+            if (rovCommand.TryGetValue("reg_mode", out var regModeObj) && regModeObj is int[] reg_mode)
+                commands.Add(BuildRegModePacket(reg_mode));
+            
+            if (rovCommand.TryGetValue("pid_settings", out var pidParamsObj) && pidParamsObj is int[] pid_settings)
+                commands.Add(BuildPIDParametersPacket(pid_settings));
+
+            if (rovCommand.TryGetValue("autotune", out var autotuneObj) && autotuneObj is int[] autotune)
+                commands.Add(BuildStartAutotunePacket(autotune));
+
+            if (rovCommand.TryGetValue("reg_mode_setting", out var regModeSettingsObj) && regModeSettingsObj is float[] reg_mode_setting)
+                commands.Add(BuildRegModeSettingsPacket(reg_mode_setting));
+
+            if (rovCommand.TryGetValue("mpc_settings", out var mpcSettingsObj) && mpcSettingsObj is float[] mpc_settings)
+                commands.Add(BuildRegMPCSettingsPacket(mpc_settings));
 
             return commands;
         }
@@ -199,72 +199,6 @@ namespace Backend.Translation
             ];
         }
 
-        private Object[] BuildRegulatorTuningPacket(int[] Regulator_Tuning)
-        {
-            return 
-            [
-                42,
-                new int[]
-                {
-                    GetValue(Regulator_Tuning, 0),
-                    GetValue(Regulator_Tuning, 1),
-                    0, 0, 0, 0, 0, 0,
-                }
-            ];
-        }
-
-        private Object[] BuildToggleAllRegulatorPacket(int[] Toggle_All_Regulator)
-        {
-            return
-            [
-                32,
-                new int[]
-                {
-                    GetValue(Toggle_All_Regulator, 0),
-                    0, 0, 0, 0, 0, 0, 0,
-                }
-            ];
-        }
-
-        private Object[] BuildToggleRollRegulatorPacket(int[] Toggle_Roll_Regulator)
-        {
-            return
-            [
-                32,
-                new int[]
-                {
-                    GetValue(Toggle_Roll_Regulator, 0), //rull i gammle gui
-                    0, 0, 0, 0, 0, 0, 0,
-                }
-            ];
-        }
-
-        private Object[] BuildToggleStampRegulatorPacket(int[] Toggle_Stamp_Regulator)
-        {
-            return
-            [
-                32,
-                new int[]
-                {
-                    GetValue(Toggle_Stamp_Regulator, 0),
-                    0, 0, 0, 0, 0, 0, 0,
-                }
-            ];
-        }
-
-        private Object[] BuildToggleDepthRegulatorPacket(int[] Toggle_Depth_Regulator)
-        {
-            return
-            [
-                32,
-                new int[]
-                {
-                    GetValue(Toggle_Depth_Regulator, 0),
-                    0, 0, 0, 0, 0, 0, 0,
-                }
-            ];
-        }
-
         private Object[] BuildFrontLightPacket(int[] Front_Light_On)
         {
             return
@@ -330,96 +264,100 @@ namespace Backend.Translation
                 }
             ];
         }
-        /*
-        private Object[] BuildRegModePacket(int[] tilt)
+        
+        private Object[] BuildRegModePacket(int[] reg_mode)
         {
             return
             [
                 32,
                 new int[]
                 {
-                    GetValue(RegMode, 1),
+                    GetValue(reg_mode, 0),
                     0, 0, 0, 0, 0, 0, 0,
                 }
             ];
         }
-        private Object[] BuildPIDParametersPacket(int[] tilt)
+        private Object[] BuildPIDParametersPacket(int[] pid_settings)
         {
             return
             [
                 42,
                 new int[]
                 {
-                    GetValue(PIDParameters, 0), // Degree of Freedom
-                    GetValue(PIDParameters, 1), // KP
-                    GetValue(PIDParameters, 2), // KI
-                    GetValue(PIDParameters, 3), // KD
+                    GetValue(pid_settings, 0), // Degree of Freedom
+                    GetValue(pid_settings, 1), // KP
+                    GetValue(pid_settings, 2), // KI
+                    GetValue(pid_settings, 3), // KD
                 }
             ];
         }
-        private Object[] BuildStartAutotunePacket(int[] tilt)
+        private Object[] BuildStartAutotunePacket(int[] autotune)
         {
             return
             [
                 43,
                 new int[]
                 {
-                    GetValue(rov_axis, 0), // Start  0= NO, 1 = yes
-                    GetValue(rov_axis, 1), // Abort  0= NO, 1 = yes
-                    GetValue(rov_axis, 2), // Degree of Freedom
-                    GetValue(rov_axis, 3), // Stepsize
+                    GetValue(autotune, 0), // Start  0= NO, 1 = yes
+                    GetValue(autotune, 1), // Abort  0= NO, 1 = yes
+                    GetValue(autotune, 2), // Degree of Freedom
+                    GetValue(autotune, 3), // Stepsize
                     0, 0, 0, 0,
                 }
             ];
         }
-        private Object[] BuildRegModeSettingsPacket(int[] tilt)
+        private Object[] BuildRegModeSettingsPacket(float[] reg_mode_setting)
         {
             return
             [
                 300,
                 new float[]
                 {
-                    GetValue(rov_axis, 0), // Reference X (WPT) , Float
-                    GetValue(rov_axis, 1), // Reference Y (WPT) , Float
-                    GetValue(rov_axis, 2), // Reference Z (WPT) , Float
-                    GetValue(rov_axis, 3), // Reference PSI (WPT) , Float
-                    GetValue(rov_axis, 4), // Chosen Trajectory  , Int
-                    GetValue(rov_axis, 5), // Chosen Speed  , Float
+                    GetValue(reg_mode_setting, 0), // Reference X (WPT) , Float
+                    GetValue(reg_mode_setting, 1), // Reference Y (WPT) , Float
+                    GetValue(reg_mode_setting, 2), // Reference Z (WPT) , Float
+                    GetValue(reg_mode_setting, 3), // Reference PSI (WPT) , Float
+                    GetValue(reg_mode_setting, 4), // Chosen Trajectory  , Int
+                    GetValue(reg_mode_setting, 5), // Chosen Speed  , Float
                 }
             ];
         }
-        private Object[] BuildRegMPCSettingsPacket(int[] tilt)
+        private Object[] BuildRegMPCSettingsPacket(float[] mpc_settings)
         {
             return
             [
                 301,
                 new float[]
                 {
-                    GetValue(rov_axis, 0), // Qx
-                    GetValue(rov_axis, 1), // Qy
-                    GetValue(rov_axis, 2), // Qz
-                    GetValue(rov_axis, 3), // Qpsi
-                    GetValue(rov_axis, 4), // Ru
-                    GetValue(rov_axis, 5), // Rv
-                    GetValue(rov_axis, 6), // Rw
-                    GetValue(rov_axis, 7), // Rr
-                    GetValue(rov_axis, 8), // Dt
-                    GetValue(rov_axis, 9), // N
-                    GetValue(rov_axis, 10), // vel_u_max
-                    GetValue(rov_axis, 11), // vel_v_max
-                    GetValue(rov_axis, 12), // vel_w_max
-                    GetValue(rov_axis, 13), // vel_r_max
-                    GetValue(rov_axis, 14), // acc_u_max
-                    GetValue(rov_axis, 15), // acc_v_max
-                    GetValue(rov_axis, 16), // acc_w_max
-                    GetValue(rov_axis, 17), // acc_r_max
+                    GetValue(mpc_settings, 0), // Qx
+                    GetValue(mpc_settings, 1), // Qy
+                    GetValue(mpc_settings, 2), // Qz
+                    GetValue(mpc_settings, 3), // Qpsi
+                    GetValue(mpc_settings, 4), // Ru
+                    GetValue(mpc_settings, 5), // Rv
+                    GetValue(mpc_settings, 6), // Rw
+                    GetValue(mpc_settings, 7), // Rr
+                    GetValue(mpc_settings, 8), // Dt
+                    GetValue(mpc_settings, 9), // N
+                    GetValue(mpc_settings, 10), // vel_u_max
+                    GetValue(mpc_settings, 11), // vel_v_max
+                    GetValue(mpc_settings, 12), // vel_w_max
+                    GetValue(mpc_settings, 13), // vel_r_max
+                    GetValue(mpc_settings, 14), // acc_u_max
+                    GetValue(mpc_settings, 15), // acc_v_max
+                    GetValue(mpc_settings, 16), // acc_w_max
+                    GetValue(mpc_settings, 17), // acc_r_max
                 }
             ];
         }
-        */
+        
         private int GetValue(int[] array, int index)
         {
             return index < array.Length ? array[index] : 0;
+        }
+        private float GetValue(float[] array, int index)
+        {
+            return index < array.Length ? array[index] : 0f;
         }
     }
 }

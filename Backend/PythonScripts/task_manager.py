@@ -1,6 +1,7 @@
 import multiprocessing
 import threading
 import queue
+import time
 
 from Thread_info import ThreadWatcher
 from camerafeed.GUI_Camerafeed_Main import CameraManager, ExecutionClass
@@ -49,6 +50,7 @@ class TaskManager:
                 command = self.command_queue.get(timeout=1)
                 self.execute_command(command)
             except queue.Empty:
+                time.sleep(0.5)
                 pass
 
     def execute_command(self, command):
@@ -56,7 +58,7 @@ class TaskManager:
 
         valid_commands = {
             "START_CAMERA": self.start_camera,
-            "START_TRANSECT": self.start_transect,
+            "START_PIPELINE": self.start_pipeline,
             "START_DOCKING": self.start_docking,
             "START_TEST": self.start_test_camera, # Not in use.
             "START_MANUAL": self.start_manual,
@@ -84,13 +86,13 @@ class TaskManager:
         self.manual_flag.value = 1
         self.start_task_in_thread(self.execution.show_all_cameras)
 
-    def start_transect(self):
+    def start_pipeline(self):
         self.stop_all_tasks()
-        print("[TASK MANAGER] Starting transect mode")
-        self.current_task = "TRANSECT"
+        print("[TASK MANAGER] Starting pipeline mode")
+        self.current_task = "PIPELINE"
         self.mode_flag.value = 3
         self.manual_flag.value = 0
-        self.start_task_in_thread(self.execution.transect)
+        self.start_task_in_thread(self.execution.pipeline)
 
     def start_docking(self):
         self.stop_all_tasks()

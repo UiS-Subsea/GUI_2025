@@ -151,7 +151,7 @@ class WebRTCServer:
                     0: [False, False, False, False],  # Disable all
                     1: [False, False, True, True],  # Manual mode
                     2: [False, False, True, True],  # Docking
-                    3: [False, False, True, False],  # Transect
+                    3: [False, False, False, True],  # Pipeline
                     4: [True, True, True, False],  # Seagrass
                     5: [True, True, True, True],  # All cameras
                     6: [True, False, True, False]  # Test mode

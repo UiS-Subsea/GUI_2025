@@ -1,6 +1,5 @@
 import zmq
 import json
-import threading
 from Thread_info import ThreadWatcher
 
 class CommunicationHandler:

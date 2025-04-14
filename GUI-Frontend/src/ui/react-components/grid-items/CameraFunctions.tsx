@@ -1,11 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Button } from '../../components/Button';
 import CamWindowButton from '../../components/CamWindowButton';
+import { WebSocketContext } from '../../../../WebSocketProvider';
 
 export const CameraFunctions = () => {
   const [tiltValue, setTiltValue] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const { sendMessage } = useContext(WebSocketContext);
 
   const handleMouseDown = () => {
     setIsDragging(false);
@@ -32,7 +34,7 @@ export const CameraFunctions = () => {
     const tiltAngle = position * 180;
 
     setTiltValue(Math.round(tiltAngle));
-    //  TODO: add the logic to control the camera tilt
+    sendMessage({ tilt: Math.round(tiltAngle) });
     console.log('Camera tilt value:', Math.round(tiltAngle));
   };
 
@@ -42,6 +44,7 @@ export const CameraFunctions = () => {
       const change = e.key === 'ArrowRight' ? 5 : -5;
       const newValue = Math.max(0, Math.min(180, tiltValue + change));
       setTiltValue(newValue);
+      sendMessage({ tilt: Math.round(newValue) });
       console.log('Camera tilt value:', newValue);
     }
   };

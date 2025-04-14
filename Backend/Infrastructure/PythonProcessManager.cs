@@ -5,8 +5,7 @@ namespace Backend.Infrastructure
     public class PythonProcessManager
     {
         private Process _pythonProcess = null!;
-        private readonly string _pythonExe = "python";  // Or "python3"
-        //private readonly string _pythonExe = @"C:\Users\Azazel\AppData\Local\Programs\Python\Python37\python.exe";
+        private readonly string _pythonExe = "python";
 
         private readonly string _pythonScriptPath;
 
@@ -31,7 +30,7 @@ namespace Backend.Infrastructure
             {
                 FileName = _pythonExe,
                 //Arguments = _pythonScriptPath,
-                Arguments = $"-u {_pythonScriptPath}",  // Use -u for unbuffered output
+                Arguments = $"-u {_pythonScriptPath}",
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
