@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 
 export const Battery = () => {
   const batteryData = {
-    batteryPercentage: 56,
-    voltage: 12.5,
-    current: 2.5,
+    batteryPercentage: 100,
+    voltage: 0,
+    current: 0,
   };
   const watt = batteryData.voltage * batteryData.current;
 

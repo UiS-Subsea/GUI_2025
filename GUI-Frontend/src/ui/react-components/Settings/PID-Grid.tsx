@@ -88,14 +88,14 @@ export const PIDGrid = () => {
 
   return (
     <div className='w-full overflow-x-auto font-silkscreen'>
-      <table className='min-w-full bg-gray-900 border border-gray-700 text-white'>
+      <table className='min-w-full bg-[#121212] border border-gray-700 text-white'>
         <thead>
           <tr>
             <th className=' text-[20px] py-2 px-4 border-b border-r border-gray-600' colSpan={10}>
               PID SETTINGS
             </th>
           </tr>
-          <tr className='bg-gray-800'>
+          <tr className='bg-[#18181c]'>
             <th className='py-2 px-4 border-b border-r border-gray-700'></th>
             <th className='py-2 px-4 border-b border-r border-gray-700' colSpan={4}>
               Current Values
@@ -105,7 +105,7 @@ export const PIDGrid = () => {
             </th>
             <th className='py-2 px-4 border-b border-gray-700' colSpan={2}></th>
           </tr>
-          <tr className='bg-gray-800'>
+          <tr className='bg-[#18181c]'>
             <th className='py-2 px-4 border-b border-r border-gray-700'></th>
             <th className='py-2 px-4 border-b border-r border-gray-700'>KP</th>
             <th className='py-2 px-4 border-b border-r border-gray-700'>KI</th>
@@ -120,7 +120,7 @@ export const PIDGrid = () => {
         </thead>
         <tbody>
           {pidData.map((row, rowIndex) => (
-            <tr key={row.name} className={rowIndex % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'}>
+            <tr key={row.name} className={rowIndex % 2 === 0 ? 'bg-[#121212]' : 'bg-[#18181c]'}>
               <td className='py-2 px-4 border-b border-r border-gray-700 font-medium'>{row.name}</td>
 
               {/* Current Values */}
@@ -129,7 +129,7 @@ export const PIDGrid = () => {
                   type='number'
                   value={row.currentValues.KP}
                   onChange={(e) => handleValueChange(rowIndex, 'currentValues', 'KP', e.target.value)}
-                  className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                  className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                 />
               </td>
               <td className='py-2 px-4 border-b border-r border-gray-700'>
@@ -137,7 +137,7 @@ export const PIDGrid = () => {
                   type='number'
                   value={row.currentValues.KI}
                   onChange={(e) => handleValueChange(rowIndex, 'currentValues', 'KI', e.target.value)}
-                  className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                  className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                 />
               </td>
               <td className='py-2 px-4 border-b border-r border-gray-700'>
@@ -145,13 +145,13 @@ export const PIDGrid = () => {
                   type='number'
                   value={row.currentValues.KD}
                   onChange={(e) => handleValueChange(rowIndex, 'currentValues', 'KD', e.target.value)}
-                  className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                  className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                 />
               </td>
               <td className='py-2 px-4 border-b border-r border-gray-700'>
                 <button
                   onClick={(e) => handleSend(rowIndex, e)}
-                  className='px-2 py-1 bg-indigo-600 hover:bg-indigo-700 rounded text-white text-sm'
+                  className='px-2 py-1 bg-[#2b768d] hover:bg-[#4bd5ff] rounded text-white text-sm'
                 >
                   Send Values
                 </button>
@@ -176,7 +176,7 @@ export const PIDGrid = () => {
                       type='number'
                       value={row.stepsize}
                       onChange={(e) => handleStepsizeChange(rowIndex, e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   </td>
 
@@ -185,7 +185,7 @@ export const PIDGrid = () => {
                     <div className='flex space-x-2'>
                       <button
                         onClick={() => handleStart(rowIndex)}
-                        className='px-2 py-1 bg-indigo-600 hover:bg-indigo-700 rounded text-white text-sm'
+                        className='px-2 py-1 bg-[#2b768d] hover:bg-[#4bd5ff] rounded text-white text-sm'
                       >
                         Start
                       </button>

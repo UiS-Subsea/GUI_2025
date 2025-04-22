@@ -62,10 +62,10 @@ export const CameraFunctions = () => {
 
   return (
     <div className='h-full w-full flex flex-col lg:text-[25px] text-[17px] justify-center items-center'>
-      <h1>Camera Functions</h1>
-      <div className='w-full justify-center flex flex-col '>
-        <div className='w-full h-full flex flex-col gap-4 justify-center items-center'>
-          <div className='gap-4 flex flex-col lg:flex-row min-w-[70px] w-full'>
+      <div className='absolute top-2 left-4 lg:text-[25px] text-[18px] p-2'>Camera functions</div>
+      <div className='w-full justify-center flex flex-col items-center '>
+        <div className='pt-4 w-full h-full flex flex-col justify-center items-center'>
+          <div className='gap-4 flex flex-col lg:flex-row min-w-[70px] max-w-[280px] w-full'>
             <CamWindowButton />
           </div>
 
