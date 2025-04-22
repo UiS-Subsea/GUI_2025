@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useStateData } from '../../../../WebSocketProvider';
 
 export const Connection = () => {
   const [connection, setConnection] = useState<boolean>(true);
   const [imagePath, setImagePath] = useState('../assets/images/red.svg');
 
   const [lastLoggedStatus, setLastLoggedStatus] = useState<boolean | null>(null);
+
+  const stateData = useStateData();
 
   const sendLogToBackend = async (isConnected: boolean) => {
     if (lastLoggedStatus === isConnected) {
@@ -42,13 +45,15 @@ export const Connection = () => {
   //   }, [connection]); // Trigger effect when `connection` changes
 
   useEffect(() => {
+    const connection = stateData.ROVState;
+
     if (lastLoggedStatus === null || lastLoggedStatus !== connection) {
       sendLogToBackend(connection);
       setLastLoggedStatus(connection);
     }
 
     setImagePath(connection ? '../assets/images/green.svg' : '../assets/images/red.svg');
-  }, [connection]);
+  }, [stateData.ROVState]);
 
   return (
     <div className='w-full h-full flex flex-row justify-center items-center gap-1 '>

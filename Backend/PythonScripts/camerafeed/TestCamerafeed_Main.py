@@ -1,6 +1,6 @@
 import threading
 import time
-from camerafeed.Main_Classes.autonomous_transect_main import AutonomousTransect
+from Backend.PythonScripts.camerafeed.Main_Classes.autonomous_transect_main_old import AutonomousTransect
 from camerafeed.Main_Classes.grass_monitor_main import SeagrassMonitor
 from camerafeed.Main_Classes.autonomous_docking_main import AutonomousDocking
 import cv2
