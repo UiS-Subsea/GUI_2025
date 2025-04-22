@@ -75,14 +75,14 @@ export const MPCGrid = () => {
 
   return (
     <div className='w-full overflow-x-auto font-silkscreen'>
-      <table className='min-w-full bg-gray-900 border border-gray-700 text-white'>
+      <table className='min-w-full bg-[#121212] border border-gray-700 text-white '>
         <thead>
           <tr>
             <th className=' text-[20px] py-2 px-4 border-b border-r border-gray-700' colSpan={10}>
               MPC SETTINGS
             </th>
           </tr>
-          <tr className='bg-gray-800'>
+          <tr className='bg-[#18181c]'>
             <th className='py-2 px-4 border-b border-r border-gray-700'>Parameter</th>
             <th className='py-2 px-4 border-b border-r border-gray-700'>X</th>
             <th className='py-2 px-4 border-b border-r border-gray-700'>Y</th>
@@ -102,7 +102,7 @@ export const MPCGrid = () => {
             const isMaxAcceleration = row.name === 'Maximum acceleration';
 
             return (
-              <tr key={row.name} className={rowIndex % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'}>
+              <tr key={row.name} className={rowIndex % 2 === 0 ? 'bg-[#121212]' : 'bg-[#18181c]'}>
                 <td className='py-2 px-4 border-b border-r border-gray-700 font-medium'>{row.name}</td>
 
                 {/* X parameter */}
@@ -112,7 +112,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.QX}
                       onChange={(e) => handleValueChange(rowIndex, 'QX', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isActuationWeight && (
@@ -120,7 +120,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.RU}
                       onChange={(e) => handleValueChange(rowIndex, 'RU', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isStepHorizon && (
@@ -128,7 +128,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.Dt}
                       onChange={(e) => handleValueChange(rowIndex, 'Dt', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isPredictionHorizon && (
@@ -136,7 +136,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.N}
                       onChange={(e) => handleValueChange(rowIndex, 'N', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isMaxVelocity && (
@@ -144,7 +144,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.VU}
                       onChange={(e) => handleValueChange(rowIndex, 'VU', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isMaxAcceleration && (
@@ -152,7 +152,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.AU}
                       onChange={(e) => handleValueChange(rowIndex, 'AU', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                 </td>
@@ -164,7 +164,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.QY}
                       onChange={(e) => handleValueChange(rowIndex, 'QY', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isActuationWeight && (
@@ -172,7 +172,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.RV}
                       onChange={(e) => handleValueChange(rowIndex, 'RV', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isStepHorizon && <div className='text-center text-gray-400'>-</div>}
@@ -182,7 +182,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.VV}
                       onChange={(e) => handleValueChange(rowIndex, 'VV', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isMaxAcceleration && (
@@ -190,7 +190,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.AV}
                       onChange={(e) => handleValueChange(rowIndex, 'AV', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                 </td>
@@ -202,7 +202,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.QZ}
                       onChange={(e) => handleValueChange(rowIndex, 'QZ', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isActuationWeight && (
@@ -210,7 +210,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.RW}
                       onChange={(e) => handleValueChange(rowIndex, 'RW', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isStepHorizon && <div className='text-center text-gray-400'>-</div>}
@@ -220,7 +220,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.VW}
                       onChange={(e) => handleValueChange(rowIndex, 'VW', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isMaxAcceleration && (
@@ -228,7 +228,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.AW}
                       onChange={(e) => handleValueChange(rowIndex, 'AW', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                 </td>
@@ -240,7 +240,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.QPSI}
                       onChange={(e) => handleValueChange(rowIndex, 'QPSI', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isActuationWeight && (
@@ -248,7 +248,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.RR}
                       onChange={(e) => handleValueChange(rowIndex, 'RR', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isStepHorizon && <div className='text-center text-gray-400'>-</div>}
@@ -258,7 +258,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.VR}
                       onChange={(e) => handleValueChange(rowIndex, 'VR', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                   {isMaxAcceleration && (
@@ -266,7 +266,7 @@ export const MPCGrid = () => {
                       type='number'
                       value={row.AR}
                       onChange={(e) => handleValueChange(rowIndex, 'AR', e.target.value)}
-                      className='w-full p-1 border rounded bg-gray-800 text-white border-gray-600'
+                      className='w-full p-1 border rounded bg-[#18181c] text-white border-gray-600'
                     />
                   )}
                 </td>
@@ -276,7 +276,7 @@ export const MPCGrid = () => {
                   <td className='py-2 px-4 border-b border-gray-700' rowSpan={MPCData.length}>
                     <button
                       onClick={handleSendAll}
-                      className='px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-white font-medium  flex justify-center items-center'
+                      className='px-4 py-2 bg-[#2b768d]  hover:bg-[#4bd5ff] rounded dark:text-white   text-white font-medium  flex justify-center items-center'
                     >
                       Send All Values
                     </button>
