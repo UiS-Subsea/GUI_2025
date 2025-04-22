@@ -74,12 +74,13 @@ export const Temperature = () => {
             const tempValue = Number(item.id);
             let borderColor = '#4bd5ff'; // default (blue)
 
-            // changing bordercolors when temp is reaching certain limtis
             if (!isNaN(tempValue)) {
-              if (tempValue >= 30) {
+              if (tempValue >= 60) {
                 borderColor = 'red';
-              } else if (tempValue >= 20) {
+              } else if (tempValue >= 50) {
                 borderColor = 'orange';
+              } else if (tempValue >= 40) {
+                borderColor = 'yellow';
               }
             }
 

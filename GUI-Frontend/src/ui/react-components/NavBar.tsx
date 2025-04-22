@@ -44,7 +44,7 @@ export const NavBar: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void 
       >
         {visibleErrors.length > 0 ? (
           <motion.img
-            src='/assets/images/warningRed.svg'
+            src={isDarkMode ? '/assets/images/warningRed.svg' : '/assets/images/warning-black.svg'}
             alt='alarm'
             width={40}
             animate={{
@@ -58,7 +58,11 @@ export const NavBar: React.FC<{ isDarkMode: boolean; toggleDarkMode: () => void 
             }}
           />
         ) : (
-          <img src='/assets/images/warning.svg' alt='alarm' width={40} />
+          <img
+            src={isDarkMode ? '/assets/images/warning.svg' : '/assets/images/warning-black.svg'}
+            alt='alarm'
+            width={40}
+          />
         )}
       </button>
       <div className=' min-w-[90px] w-[110px] h-full'>
