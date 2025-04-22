@@ -88,7 +88,7 @@ export const Grid1 = () => {
               onClick={() => setActiveMode('trajectory')}
               className={`px-4 py-2 rounded-md border-2 ${
                 activeMode === 'trajectory'
-                  ? 'bg-blue-500 text-white border-blue-600'
+                  ? 'bg-[#4bd5ff] text-white border-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600'
               }`}
             >
@@ -100,7 +100,7 @@ export const Grid1 = () => {
               onClick={() => setActiveMode('waypoint')}
               className={`px-4 py-2 rounded-md border-2 ${
                 activeMode === 'waypoint'
-                  ? 'bg-blue-500 text-white border-blue-600'
+                  ? 'bg-[#4bd5ff] text-white border-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600'
               }`}
             >

@@ -34,7 +34,7 @@ export const CamWindowButton = () => {
         onClick={handleOpenCameraWindow}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.9 }}
-        className="flex justify-center dark:text-white text-black border-2 border-black font-bold py-2 px-4 rounded text-[18px] min-w-[70px] w-full transition-colors duration-300 text-white' dark:bg-[#2A2A2A] dark:hover:bg-[#2A2A2A] bg-white hover:bg-gray-200 font-Silkscreen 
+        className="flex justify-center dark:text-white text-black border-2 border-black font-bold py-2 px-4 rounded text-[18px] min-w-[70px] w-full transition-colors duration-300 text-white' dark:bg-[#2A2A2A] dark:hover:bg-[#2A2A2A] dark:border-white bg-white hover:bg-gray-200 font-Silkscreen 
              "
       >
         Open Camera Feed
