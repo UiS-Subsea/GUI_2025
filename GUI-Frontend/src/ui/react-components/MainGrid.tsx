@@ -27,13 +27,13 @@ export const DashboardGrid = () => {
       { i: 'lightSettings', x: 0, y: 2, w: 2, h: 2 },
       { i: 'driveMode', x: 0, y: 5, w: 1, h: 4.5 },
       { i: 'angles', x: 1, y: 5, w: 1, h: 4.5 },
-      { i: 'temperature', x: 2, y: 0, w: 2, h: 4 },
+      { i: 'temperature', x: 2, y: 0, w: 4, h: 4 },
       { i: 'coordinates', x: 6, y: 4, w: 2, h: 4.5 },
       { i: 'sensors', x: 6, y: 0, w: 1, h: 4 },
       { i: 'battery', x: 7, y: 0, w: 1, h: 4 },
-      { i: 'manipulatorConnection', x: 4, y: 0, w: 2, h: 4 },
+      { i: 'manipulatorConnection', x: 4, y: 5, w: 2, h: 4.5 },
       { i: 'grid1', x: 2, y: 5, w: 2, h: 4.5 },
-      { i: 'grid2', x: 4, y: 5, w: 2, h: 4.5 },
+      // { i: 'grid2', x: 4, y: 5, w: 2, h: 4.5 },
     ],
     sm: [
       { i: 'cameraFunctions', x: 0, y: 0, w: 2, h: 3 },
@@ -45,8 +45,8 @@ export const DashboardGrid = () => {
       { i: 'battery', x: 6, y: 4, w: 2, h: 2 },
       { i: 'manipulatorConnection', x: 6, y: 5, w: 2, h: 4 },
       { i: 'coordinates', x: 2, y: 9, w: 4, h: 4 },
-      { i: 'grid1', x: 0, y: 8, w: 4, h: 4 },
-      { i: 'grid2', x: 4, y: 8, w: 4, h: 4 },
+      { i: 'grid1', x: 0, y: 8, w: 8, h: 4 },
+      // { i: 'grid2', x: 4, y: 8, w: 4, h: 4 },
     ],
   };
 
@@ -159,13 +159,14 @@ export const DashboardGrid = () => {
           <PinButton itemId='grid1' />
           <Grid1 />
         </div>
-        <div
+        {/* This part was made to be able to add more grids to the dashboard, once the other groups was ready to display more value changes
+         <div
           key='grid2'
           className='drag-Handle overflow-auto dark:bg-[#2A2A2A] bg-white text-black dark:text-white p-2 border-black border-2 rounded-md relative'
         >
           <PinButton itemId='grid2' />
           <Grid2 />
-        </div>
+        </div> */}
       </ResponsiveGridLayout>
     </div>
   );
