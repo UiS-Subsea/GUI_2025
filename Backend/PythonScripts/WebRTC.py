@@ -28,23 +28,22 @@ class WebRTCServer:
             self.frame_count = 0  # To count the number of frames
             self.fps = 0  # To store the calculated FPS
             self.first_frame_sent = False
+            self.black_frame = VideoFrame.from_ndarray(np.zeros((720, 1280, 3), dtype=np.uint8), format="bgr24")
 
         async def recv(self):
             while True:
                 # To send one black frame to frontend to mute the tracks as start status.
                 if not self.first_frame_sent:
                     self.first_frame_sent = True
-                    current_time = time.time()
+                    current_time = time.time()#
 
                     pts, time_base = await self.next_timestamp()
-                    dummy_frame = np.zeros((720, 1280, 3), dtype=np.uint8)  # Black frame
-                    dummy_video_frame = VideoFrame.from_ndarray(dummy_frame, format="bgr24")
-                    dummy_video_frame.pts = pts
-                    dummy_video_frame.time_base = time_base
-                    return dummy_video_frame  # Return the dummy frame to the track
+                    self.black_frame.pts = pts
+                    self.black_frame.time_base = time_base
+                    return self.black_frame  # Return the dummy frame to the track
 
                 if not self.active_flag.value:
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(1)
                     continue
                 current_time = time.time()
             

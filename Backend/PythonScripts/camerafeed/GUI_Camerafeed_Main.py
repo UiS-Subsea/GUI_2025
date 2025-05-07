@@ -1,3 +1,4 @@
+from collections import defaultdict
 import threading
 import time
 from camerafeed.Main_Classes.autonomous_transect_main_old import AutonomousTransect
@@ -269,6 +270,7 @@ class ExecutionClass:
 
     def show(self, frame, name="frame"):
     # Maps the name to the corresponding queue
+        current_time = time.time()
     
         if name == "StereoL":
             # Check if the queue is full and remove the oldest item if necessary
@@ -429,13 +431,13 @@ class ExecutionClass:
         while not self.done:  # Check if stop event is set
             self.update_down()  # Update the frame
             self.show(self.frame_down, "Down")
-            time.sleep(0.01)
+            #time.sleep(0.02)
 
     def camera_thread_manipulator(self):
         while not self.done:  # Check if stop event is set
             self.update_manipulator()  # Update the frame
             self.show(self.frame_manipulator, "Manipulator")
-            time.sleep(0.01)
+            #time.sleep(0.02)
 
     def camera_thread_stereoL(self):
         while not self.done:  # Check if stop event is set

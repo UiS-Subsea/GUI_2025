@@ -23,7 +23,7 @@ namespace Backend.Translation
             {
                 string dataStr = _incompletePacket + Encoding.UTF8.GetString(tcpData); // From bytes to string.
                 _incompletePacket = "";
-                _logger.LogInformation("Received packet: {Packet}", dataStr);
+                _logger.LogDebug("Received packet: {Packet}", dataStr);
 
                 if (!dataStr.StartsWith("\"*\""))
                 {

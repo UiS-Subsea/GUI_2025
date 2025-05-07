@@ -33,7 +33,7 @@ public class ZmqCommunicationService : BackgroundService
             {
                 if (_rovDataReceiver.TryReceiveFrameString(out string message))
                 {
-                    _logger.LogInformation($"[ROV DATA] Received raw: {message}");
+                    _logger.LogDebug($"[ROV DATA] Received raw: {message}");
 
                     try
                     {

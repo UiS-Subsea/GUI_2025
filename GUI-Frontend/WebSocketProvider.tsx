@@ -192,7 +192,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setSensorData((prevData) => {
           const updatedData = { ...prevData }; // Copy previous data to retain unchanged values
 
-          console.warn(' data item:', data);
+          //console.warn(' data item:', data);
 
           for (const item of data) {
             if (!item || typeof item !== 'object' || !item.Type) {
