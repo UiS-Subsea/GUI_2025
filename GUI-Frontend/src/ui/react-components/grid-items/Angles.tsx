@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Switch from 'react-switch';
 // eslint-disable-next-line import/no-unresolved
 import { vinkler } from 'WebSocketProvider';
@@ -6,6 +6,16 @@ import { vinkler } from 'WebSocketProvider';
 export const Angles = () => {
   const vinklerData = vinkler();
   const [transducerOn, setTransducerOn] = useState(false);
+
+  // Memoize angles data - only update when values change
+  const anglesDisplay = useMemo(
+    () => ({
+      roll: vinklerData.Roll,
+      pitch: vinklerData.Stamp,
+      yaw: vinklerData.Gir,
+    }),
+    [vinklerData.Roll, vinklerData.Stamp, vinklerData.Gir],
+  );
 
   //Fetch Transducer status from backend when the component loads
   useEffect(() => {
@@ -55,15 +65,15 @@ export const Angles = () => {
         <div className='lg:flex-col flex-row gap-4'>
           <div className='text-[15px] w-full gap-7 flex-row flex lg:text-[18px]'>
             <p className='max-w-[120px] h-full w-full lg:max-h-[70px]'>Roll</p>
-            <p className='dark:text-[#4bd5ff] text-whites'>{vinklerData.Roll}</p>
+            <p className='dark:text-[#4bd5ff] text-whites'>{anglesDisplay.roll}</p>
           </div>
           <div className='text-[15px] w-full gap-7 flex-row flex lg:text-[18px]'>
             <p className='max-w-[120px] h-full w-full lg:max-h-[70px]'>Pitch</p>
-            <p className='dark:text-[#4bd5ff] text-whites lg:text-[20px]'>{vinklerData.Stamp}</p>
+            <p className='dark:text-[#4bd5ff] text-whites lg:text-[20px]'>{anglesDisplay.pitch}</p>
           </div>
           <div className='text-[15px] w-full gap-8 flex-row flex lg:text-[18px]'>
             <p className='max-w-[120px] h-full w-full lg:max-h-[70px]'>Yaw</p>
-            <p className='dark:text-[#4bd5ff] text-whites'>{vinklerData.Gir}</p>
+            <p className='dark:text-[#4bd5ff] text-whites'>{anglesDisplay.yaw}</p>
           </div>
         </div>
       </div>
