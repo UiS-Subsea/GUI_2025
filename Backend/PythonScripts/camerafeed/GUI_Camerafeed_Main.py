@@ -1,7 +1,7 @@
 from collections import defaultdict
 import threading
 import time
-from camerafeed.Main_Classes.autonomous_transect_main_old import AutonomousTransect
+from camerafeed.Main_Classes.autonomous_transect_main import AutonomousTransect
 from camerafeed.Main_Classes.grass_monitor_main import SeagrassMonitor
 from camerafeed.Main_Classes.autonomous_docking_main import AutonomousDocking
 import cv2
@@ -341,7 +341,7 @@ class ExecutionClass:
         self.Camera.start_manipulator_cam()
         while not self.done and self.manual_flag.value == 0:
             self.update_manipulator()
-            pipeline_frame, driving_data_packet = self.AutonomousTransect.run(
+            pipeline_frame, driving_data_packet, _, _, _ = self.AutonomousTransect.run(
                 self.frame_manipulator
             )
 

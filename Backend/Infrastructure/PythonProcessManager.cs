@@ -14,7 +14,7 @@ namespace Backend.Infrastructure
             // Get the path of the root project directory dynamically
             string projectRoot = Directory.GetCurrentDirectory();
             
-            // Build the full path to your main.py script
+            // Build the full path to the main.py script
             _pythonScriptPath = Path.Combine(projectRoot, "PythonScripts", "main.py");
         }
 

@@ -161,14 +161,19 @@ class AutonomousDocking:
     
     def navigate(self, commands):
         """Controls navigation based on commands."""
+        self.driving_data = [0, 0, 0, 0, 0, 0, 0, 0]
         for command in commands:
             if command == "FORWARD" or command == "UP":
+                self.driving_data[0] = 5
                 print("Moving forward/up")
             elif command == "BACK" or command == "DOWN":
+                self.driving_data[0] = -5
                 print("Moving backward/down")
             elif command == "LEFT":
+                self.driving_data[2] = -5
                 print("Moving left")
             elif command == "RIGHT":
+                self.driving_data[2] = 5
                 print("Moving right")
             elif command == "SEARCH":
                 self.search_strategy()
@@ -181,7 +186,7 @@ class AutonomousDocking:
     def get_driving_data(self):
         """Returns and resets driving data."""
         data = self.driving_data.copy()
-        self.driving_data = [40, [0, 0, 0, 0, 0, 0, 0, 0]]
+        self.driving_data = [0, 0, 0, 0, 0, 0, 0, 0]
         return data
         
     def run(self, front_frame, down_frame=None):

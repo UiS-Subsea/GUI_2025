@@ -180,7 +180,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 break;
 
               default:
-                console.warn(`1Received unknown data type: ${item.Type}`, item);
                 break;
             }
           }

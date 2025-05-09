@@ -1,27 +1,24 @@
-using Backend.Domain.Mani_Controller;
-using Backend.Domain.ROV_Controller;
 using Backend.Infrastructure;
 using Backend.Infrastructure.Interface;
 using SDL2;
 using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
 
-namespace Backend
+namespace Backend.Domain.Controllers
 {
-    public class SDL2PoolService : BackgroundService
+    public class ControllerEventService : BackgroundService
     {
         private readonly IROVController _rovController;
         private readonly IManiController _maniController;
-        private readonly ILogger<SDL2PoolService> _logger;
+        private readonly ILogger<ControllerEventService> _logger;
         private readonly ICommandQueueService<Dictionary<string, object>> _commandQueue;
         private readonly IModeService _modeService;
         private readonly WebSocketServer _webSocketServer;
         private bool rovInitialized = false;
         private bool maniInitialized = false;
 
-        public SDL2PoolService(
+        public ControllerEventService(
             ICommandQueueService<Dictionary<string, object>> commandQueue,
-            ILogger<SDL2PoolService> logger,
+            ILogger<ControllerEventService> logger,
             IROVController rovController,
             IManiController maniController,
             IModeService modeService,

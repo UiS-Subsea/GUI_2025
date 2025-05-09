@@ -1,12 +1,13 @@
+﻿using Backend.Infrastructure;
 using Backend.Infrastructure.Interface;
 using SDL2;
 
-namespace Backend.Domain.Mani_Controller
+namespace Backend.Domain.Controllers.ROV_Controller
 {
-    public class ManiController : IManiController
+    public class RovController : IROVController
     {
 
-        private readonly ILogger<ManiController> _logger;
+        private readonly ILogger<RovController> _logger;
         private IntPtr JoystickPtr; 
         private int joystickIndex = -1;
         private int JoystickId; // Store The Xbox One Controllers InstanceID.
@@ -16,46 +17,40 @@ namespace Backend.Domain.Mani_Controller
         private const float MaxValue = 32767.0f; // The Xbox One Controllers Max Joystick Value.
         private const float MinValue = -32768.0f; // The Xbox One Controllers Min Joystick Value.
 
-        private int[] mani_buttons = new int[16]; // Store button states (0 or 1).
-        private int[] mani_axis = new int[7]; // Store joystick axis states in [x, y, z, rotation, 0, 0, 0, 0].
-        private (int x, int y) mani_dpad = (0, 0);
+        private int[] rov_buttons = new int[15]; // Store button states (0 or 1).
+        private int[] rov_axis = new int[7]; // Store joystick axis states in [x, y, z, rotation, 0, 0, 0, 0].
+        private (int x, int y) rov_dpad = (0, 0);
 
-        public ManiController(ILogger<ManiController> logger)
+        public RovController(ILogger<RovController> logger)
         {
             _logger = logger;
         }
 
         public void InitializeJoystick(int index)
         {
+
             if (SDL.SDL_NumJoysticks() <= 0)
             {
                 _logger.LogWarning($"There are no Joystick available/connected.");
                 return;
             }
-
             joystickIndex = index;
             JoystickPtr = SDL.SDL_JoystickOpen(joystickIndex);
             if (JoystickPtr == IntPtr.Zero)
             {
-                _logger.LogWarning("Manipulator Joystick not found!");
+                _logger.LogWarning("Rov Joystick not found!");
             }
             else
             {
                 // Finds the Instance ID and stores it.
                 JoystickId = SDL.SDL_JoystickInstanceID(JoystickPtr);
             }
-            if (SDL.SDL_JoystickRumble(JoystickPtr, 65535, 65535, 400) == 0)
-            {
-                Thread.Sleep(500);
-                SDL.SDL_JoystickRumble(JoystickPtr, 0, 0, 0);
-                Thread.Sleep(500);
-                SDL.SDL_JoystickRumble(JoystickPtr, 65535, 65535, 400);
-            }
-            else
+            if (SDL.SDL_JoystickRumble(JoystickPtr, 65535, 65535, 200) == -1)
             {
                 _logger.LogWarning("Faild to trigger vabration: " + SDL.SDL_GetError());
             }
-            _logger.LogInformation("The Manipulator Joystick Has Been Connected.");
+            _logger.LogInformation("The ROV Joystick Has Been Connected.");
+
         }
 
         public int GetJoystickId()
@@ -114,9 +109,10 @@ namespace Backend.Domain.Mani_Controller
                 return; // Not a button event, exit early
             }
 
-            // Now handle the button press/release
-            mani_buttons[e.jbutton.button] = buttonState;
-
+            // Now handle the button press/release:
+            rov_buttons[e.jbutton.button] = buttonState;
+            
+             // Debug print statements
             switch (e.jbutton.button)
             {
                 case 0: _logger.LogDebug($"Button A {(buttonState == 1 ? "pressed" : "released")}"); break;
@@ -129,7 +125,6 @@ namespace Backend.Domain.Mani_Controller
                 case 9: _logger.LogDebug($"Right Joystick Press {(buttonState == 1 ? "pressed" : "released")}"); break;
                 default: _logger.LogDebug($"Unknown button {e.jbutton.button} {(buttonState == 1 ? "pressed" : "released")}"); break;
             }
-            mani_buttons[15] = mani_buttons[11] - mani_buttons[12];
         }
 
         private void HandleJoyHatMotion(SDL.SDL_Event e)
@@ -151,16 +146,14 @@ namespace Backend.Domain.Mani_Controller
             }
 
             // Update the stored D-pad state
-            mani_dpad = (x, y);
+            rov_dpad = (x, y);
 
-            _logger.LogDebug($"D-pad Position: {mani_dpad}");
+            _logger.LogDebug($"D-pad Position: {rov_dpad}");
         }
 
-
-        // Handle joystick motion events (Axis motion)
         private void HandleJoystickMotion(SDL.SDL_Event e)
         {
-            // Assuming you have already initialized joysticks (JoystickPtr and maniJoystick)
+            // Assuming you have already initialized joysticks (JoystickPtr)
             // Assuming you're working with joystick axes [x, y, z, rotation, 0, 0, 0, 0]
             if (JoystickPtr != IntPtr.Zero)
             {
@@ -172,22 +165,22 @@ namespace Backend.Domain.Mani_Controller
                 int normalizedValue = NormalizeJoystick(axisIndex, axisValue);
                 UpdateAxis(axisIndex, normalizedValue);
 
-                mani_axis[6] = mani_axis[5] - mani_axis[2];
+                rov_axis[6] = rov_axis[5] - rov_axis[2]; // Z axis
 
-                _logger.LogDebug("Mani Axis: " + string.Join(", ", mani_axis));
+                _logger.LogDebug("ROV Axis: " + string.Join(", ", rov_axis));
             }
         }
-        // Update the mani_axis array based on axis index
+        // Update the rov_axis array based on axis index
           private void UpdateAxis(int axisIndex, int value)
         {
             switch (axisIndex)
             {
-                case 0: mani_axis[0] = value; break; // X axis
-                case 1: mani_axis[1] = value; break; // Y axis
-                case 2: mani_axis[2] = value; break; // Z axis
-                case 3: mani_axis[3] = value; break; // Rotation
-                case 4: mani_axis[4] = value; break; // 
-                case 5: mani_axis[5] = value; break; // 
+                case 0: rov_axis[0] = value; break; // Y axis
+                case 1: rov_axis[1] = value; break; // X axis
+                case 2: rov_axis[2] = value; break; //
+                case 3: rov_axis[3] = value; break; // Rotation 
+                case 4: rov_axis[4] = value; break; // 
+                case 5: rov_axis[5] = value; break; // 
 
                 default: break;
             }
@@ -238,10 +231,10 @@ namespace Backend.Domain.Mani_Controller
                 SDL.SDL_JoystickClose(JoystickPtr);
                 JoystickPtr = IntPtr.Zero; // Reset pointer to avoid invalid access
                 joystickIndex = -1;
-                _logger.LogInformation("The Manipulator Joystick Has Been DisConnected.");
+                _logger.LogInformation("The ROV Joystick Has Been DisConnected.");
             }
         }
-                public bool IsRelevantEvent(SDL.SDL_Event e)
+        public bool IsRelevantEvent(SDL.SDL_Event e)
         {
             if (e.type == SDL.SDL_EventType.SDL_JOYAXISMOTION ||
                 e.type == SDL.SDL_EventType.SDL_JOYBUTTONDOWN ||
@@ -258,9 +251,10 @@ namespace Backend.Domain.Mani_Controller
         {
             return new Dictionary<string, object>
             {
-                { "mani_axis", (int[])mani_axis.Clone() }, // Prevent accidental modification
-                { "mani_buttons", (int[])mani_buttons.Clone() },
-                { "mani_dpad", mani_dpad }
+                { "rov_axis", (int[])rov_axis.Clone() }, // Prevent accidental modification
+                { "rov_buttons", (int[])rov_buttons.Clone() },
+                {"camera_movement", rov_axis[3]},
+                { "rov_dpad", rov_dpad }
             };
         }
     }
