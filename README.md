@@ -7,11 +7,10 @@ A cross-platform graphical interface and backend system for processing and strea
 ## 📖 Table of Contents
 
 - [Prerequisites](#-prerequisites)
+- [Connecting to Jetson](#-connecting-to-the-jetson-and-starting-the-program)
 - [Setup Guides](#-setup-guides)
   - [🐧 Linux (Ubuntu/Debian) Setup](#linux-ubuntudebian-setup)
   - [🪟 Windows Setup](#windows-setup)
-- [Usage](#-usage)
-- [License](#-license)
 
 ---
 
@@ -23,6 +22,31 @@ A cross-platform graphical interface and backend system for processing and strea
 - CMake with GUI
 - GStreamer and FFmpeg
 
+---
+
+## 🔌 Connecting to the Jetson and Starting the Program
+
+To connect to the Jetson device and start the control software:
+
+1. Open a terminal and SSH into the Jetson:
+   ```
+   ssh jetson@10.0.0.2
+   ```
+
+2. When prompted, enter the password:
+   ```
+   jetson
+   ```
+
+3. Once connected, run the startup script with superuser privileges:
+   ```
+   sudo ./startup.sh
+   ```
+
+4. When prompted again, enter the password:
+   ```
+   jetson
+   ```
 ---
 
 ## 🧰 Setup Guides
