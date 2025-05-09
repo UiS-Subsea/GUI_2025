@@ -1,6 +1,7 @@
+from collections import defaultdict
 import threading
 import time
-from camerafeed.Main_Classes.autonomous_transect_main_old import AutonomousTransect
+from camerafeed.Main_Classes.autonomous_transect_main import AutonomousTransect
 from camerafeed.Main_Classes.grass_monitor_main import SeagrassMonitor
 from camerafeed.Main_Classes.autonomous_docking_main import AutonomousDocking
 import cv2
@@ -269,6 +270,7 @@ class ExecutionClass:
 
     def show(self, frame, name="frame"):
     # Maps the name to the corresponding queue
+        current_time = time.time()
     
         if name == "StereoL":
             # Check if the queue is full and remove the oldest item if necessary
@@ -339,7 +341,7 @@ class ExecutionClass:
         self.Camera.start_manipulator_cam()
         while not self.done and self.manual_flag.value == 0:
             self.update_manipulator()
-            pipeline_frame, driving_data_packet = self.AutonomousTransect.run(
+            pipeline_frame, driving_data_packet, _, _, _ = self.AutonomousTransect.run(
                 self.frame_manipulator
             )
 
@@ -429,13 +431,13 @@ class ExecutionClass:
         while not self.done:  # Check if stop event is set
             self.update_down()  # Update the frame
             self.show(self.frame_down, "Down")
-            time.sleep(0.01)
+            #time.sleep(0.02)
 
     def camera_thread_manipulator(self):
         while not self.done:  # Check if stop event is set
             self.update_manipulator()  # Update the frame
             self.show(self.frame_manipulator, "Manipulator")
-            time.sleep(0.01)
+            #time.sleep(0.02)
 
     def camera_thread_stereoL(self):
         while not self.done:  # Check if stop event is set

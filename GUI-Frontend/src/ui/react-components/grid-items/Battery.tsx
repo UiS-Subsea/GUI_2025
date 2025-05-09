@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { battery } from '../../../../WebSocketProvider';
 
 export const Battery = () => {
-  const batteryData = {
+  /*const batteryData = {
     batteryPercentage: 100,
     voltage: 0,
     current: 0,
-  };
+  };*/
+  const batteryData = battery();
   const watt = batteryData.voltage * batteryData.current;
 
   const [prevBatteryStatus, setPrevBatteryStatus] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export const Battery = () => {
 
   useEffect(() => {
     sendBatteryLog(batteryData.batteryPercentage);
-  }, []);
+  }, [batteryData.batteryPercentage]);
 
   return (
     <div className='flex justify-center items-center flex-col lg:text-[25px]  text-[18px] gap-4 '>

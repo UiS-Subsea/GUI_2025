@@ -5,7 +5,7 @@ import { useSensorData } from 'WebSocketProvider';
 export const Temperature = () => {
   // Get live temperature data from backend
   const temperatureDataBackend = useSensorData();
-  console.log('temp', temperatureDataBackend);
+  //console.log('temp', temperatureDataBackend);
 
   const [lastLoggedStatus, setLastLoggedStatus] = useState<Record<string, string>>({});
 

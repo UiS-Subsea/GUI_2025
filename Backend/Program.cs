@@ -1,12 +1,12 @@
-using Backend;
 using Backend.Domain.GUI_Updater;
-using Backend.Domain.Mani_Controller;
-using Backend.Domain.ROV_Controller;
 using Backend.Domain.ROV_Sender;
 using Backend.Infrastructure;
 using Backend.Infrastructure.Interface;
 using Backend.Translation;
 using Backend.Logging;
+using Backend.Domain.Controllers.ROV_Controller;
+using Backend.Domain.Controllers.Mani_Controller;
+using Backend.Domain.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,10 +53,10 @@ builder.Services.AddSingleton<INetworkServer>(sp => sp.GetRequiredService<Networ
 
 
 // Background Services:
-builder.Services.AddHostedService<RovCommandProcessor>(); // Service that Dequeue Commands, Translate it, And Send it to ROV.
-builder.Services.AddHostedService<SDL2PoolService>(); // Service that Collects Controller Input and Enqueue it.
+builder.Services.AddHostedService<RovCommandService>(); // Service that Dequeue Commands, Translate it, And Send it to ROV.
+builder.Services.AddHostedService<ControllerEventService>(); // Service that Collects Controller Input and Enqueue it.
 builder.Services.AddHostedService<DataProviderService>(); // Service that Translate and send it to GUI.
-builder.Services.AddHostedService<WebSocketBackgroundService>(); // Websocket that sends and receives data between Backend and Frontend.
+builder.Services.AddHostedService<WebSocketService>(); // Websocket that sends and receives data between Backend and Frontend.
 builder.Services.AddHostedService<ZmqCommunicationService>(); // Receives ROV controlling from the Python process and Enqueue it.
 
 // Add services to the container.

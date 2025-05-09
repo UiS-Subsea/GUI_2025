@@ -19,8 +19,8 @@ namespace Backend.Domain.GUI_Updater
         {
             _serverNetwork = serverNetwork;
             _sensorDataReader = _serverNetwork.SensorData;  // Get the channel to read incoming sensor data
-            _logger = logger;  // Logger for logging events/errors
-            _webSocketServer = webSocketServer;  // Inject WebSocket server
+            _logger = logger;
+            _webSocketServer = webSocketServer;
             _gUITranslationLayer = gUITranslationLayer;
         }
 

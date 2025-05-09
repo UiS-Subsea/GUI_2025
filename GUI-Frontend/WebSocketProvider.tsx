@@ -59,6 +59,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     DATA5V: {
       Power_temp: Number | 0;
     };
+    BATTERY: {
+      batteryPercentage: Number | 0;
+      voltage: Number | 0;
+      current: Number | 0;
+    };
   }>({
     THRUSTPAADRAG: {
       HFF: 0,
@@ -106,6 +111,11 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     },
     DATA5V: {
       Power_temp: 0,
+    },
+    BATTERY: {
+      batteryPercentage: 0,
+      voltage: 0,
+      current: 0,
     },
   });
   const [stateData, setStateData] = useState<{
@@ -170,7 +180,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 break;
 
               default:
-                console.warn(`1Received unknown data type: ${item.Type}`, item);
                 break;
             }
           }
@@ -182,7 +191,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setSensorData((prevData) => {
           const updatedData = { ...prevData }; // Copy previous data to retain unchanged values
 
-          console.warn(' data item:', data);
+          //console.warn(' data item:', data);
 
           for (const item of data) {
             if (!item || typeof item !== 'object' || !item.Type) {
@@ -224,6 +233,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
               case 'DATA5V':
                 updatedData.DATA5V = { ...updatedData.DATA5V, ...item };
+                break;
+              case 'BATTERY':
+                updatedData.BATTERY = { ...updatedData.BATTERY, ...item };
                 break;
 
               default:
@@ -280,3 +292,5 @@ export const sensorerror = () => useContext(WebSocketContext).sensorData.SENSORE
 export const comtemp = () => useContext(WebSocketContext).sensorData.COMTEMP;
 
 export const data5v = () => useContext(WebSocketContext).sensorData.DATA5V;
+
+export const battery = () => useContext(WebSocketContext).sensorData.BATTERY;

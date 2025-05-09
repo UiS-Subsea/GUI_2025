@@ -5,15 +5,15 @@ using Backend.Translation;
 
 namespace Backend.Domain.ROV_Sender
 {
-    public class RovCommandProcessor : BackgroundService
+    public class RovCommandService : BackgroundService
     {
         private readonly ICommandQueueService<Dictionary<string, object>> _commandQueue;
-        private readonly ILogger<RovCommandProcessor> _logger;
+        private readonly ILogger<RovCommandService> _logger;
         private readonly INetworkClient _clientNetwork;
         private readonly IRovTranslationLayer _rovTranslationLayer;
         private int _packetCount = 0; // For Debugging to monitoring Packets per second.
 
-        public RovCommandProcessor(ICommandQueueService<Dictionary<string, object>> commandQueue, ILogger<RovCommandProcessor> logger, INetworkClient clientNetwork, IRovTranslationLayer rovTranslation)
+        public RovCommandService(ICommandQueueService<Dictionary<string, object>> commandQueue, ILogger<RovCommandService> logger, INetworkClient clientNetwork, IRovTranslationLayer rovTranslation)
         {
             _commandQueue = commandQueue; //Internal Queue containing the generic commands from other services.
             _logger = logger;

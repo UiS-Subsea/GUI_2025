@@ -2,11 +2,11 @@ using Backend.Infrastructure;
 
 namespace Backend.Domain.GUI_Updater
 {
-    public class WebSocketBackgroundService : BackgroundService
+    public class WebSocketService : BackgroundService
     {
         private readonly WebSocketServer _webSocketServer;
 
-        public WebSocketBackgroundService(WebSocketServer webSocketServer)
+        public WebSocketService(WebSocketServer webSocketServer)
         {
             _webSocketServer = webSocketServer;
         }

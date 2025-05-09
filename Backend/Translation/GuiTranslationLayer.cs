@@ -23,6 +23,7 @@ namespace Backend.Translation
             {
                 string dataStr = _incompletePacket + Encoding.UTF8.GetString(tcpData); // From bytes to string.
                 _incompletePacket = "";
+                _logger.LogDebug("Received packet: {Packet}", dataStr);
 
                 if (!dataStr.StartsWith("\"*\""))
                 {
@@ -159,6 +160,11 @@ namespace Backend.Translation
 
                 152 => new { Type = "DATA5V", 
                                 Power_temp = Math.Round(Convert.ToDouble(values[0])/100, 2) },            //*C
+
+                153 => new { Type = "BATTERY", 
+                                batteryPercentage = Math.Round(Convert.ToDouble(values[0]), 2),    //
+                                voltage = Math.Round(Convert.ToDouble(values[1]), 2),              //
+                                current = Math.Round(Convert.ToDouble(values[2]), 2) },            //
 
                 _ => new { Type = "Unknown", CanID = canId, RawData = values } // Default if CAN ID not recognized
             };

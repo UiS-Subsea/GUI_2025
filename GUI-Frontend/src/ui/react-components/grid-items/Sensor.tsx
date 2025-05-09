@@ -5,7 +5,7 @@ import { tempdybde } from '../../../../WebSocketProvider';
 
 export const Sensor = () => {
   const sensorData = tempdybde(); // Get the sensor data from the context
-  console.log('test', sensorData);
+  //console.log('test', sensorData);
 
   // Constants that don't change
   const P0 = 101325; // Atmospheric pressure at surface in Pascals
