@@ -11,6 +11,7 @@ A cross-platform graphical interface and backend system for processing and strea
 - [Setup Guides](#-setup-guides)
   - [🐧 Linux (Ubuntu/Debian) Setup](#linux-ubuntudebian-setup)
   - [🪟 Windows Setup](#windows-setup)
+- [SDL2 Troubleshooting](#-sdl2-troubleshooting)
 
 ---
 
@@ -375,3 +376,34 @@ where GStreamer is installed..
       ```
 
 </details>
+
+---
+
+## 🔧 SDL2 Troubleshooting
+
+The project uses [SDL2-CS](https://github.com/flibitijibibo/SDL2-CS) to handle controller input across platforms. In most cases, SDL2 should work out-of-the-box after cloning the project, as the necessary native libraries are bundled via SDL2-CS.
+
+However, if controller input does not function correctly on your system, you can try running the appropriate script below to fix your SDL2 installation:
+
+| Operating System | Script |
+|------------------|--------|
+| Windows          | `install-sdl2-windows.ps1` *(PowerShell)* |
+| Linux            | `install-sdl2-linux.sh` *(Bash)* |
+| macOS            | `install-sdl2-macos.sh` *(Bash)* |
+
+### 📌 Usage
+
+Run the script that matches your OS from the project root:
+
+- **Windows (PowerShell):**
+  ```powershell
+  ./install-sdl2-windows.ps1
+  ```
+
+- **Linux/macOS (Bash):**
+  ```bash
+  chmod +x install-sdl2-linux.sh  # or install-sdl2-macos.sh
+  ./install-sdl2-linux.sh         # or ./install-sdl2-macos.sh
+  ```
+
+If the issue persists after running the script, you may need to manually configure or install SDL2 for your platform.
