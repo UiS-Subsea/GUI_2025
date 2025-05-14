@@ -11,6 +11,7 @@ A cross-platform graphical interface and backend system for processing and strea
 - [Setup Guides](#-setup-guides)
   - [🐧 Linux (Ubuntu/Debian) Setup](#linux-ubuntudebian-setup)
   - [🪟 Windows Setup](#windows-setup)
+  - [🪟 Mac Setup](#mac-setup)
 - [SDL2 Troubleshooting](#-sdl2-troubleshooting)
 
 ---
@@ -374,6 +375,13 @@ where GStreamer is installed..
       ```bash
       npm start
       ```
+
+</details>
+
+<details>
+<summary><strong>🔧 Mac Setup Guide</strong></summary>
+
+### Mac Setup
 
 </details>
 
