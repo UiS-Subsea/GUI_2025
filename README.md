@@ -383,6 +383,8 @@ where GStreamer is installed..
 
 ### Mac Setup
 
+Comming Soon.
+
 </details>
 
 ---
